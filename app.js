@@ -53,6 +53,10 @@ const soonTextColor = "#8A6A12";
 // app): Highest/High → lateColor, Medium → soonColor, Low/Lowest → fallback.
 const priorityColor = { "Highest": lateColor, "High": lateColor, "Medium": soonColor, "Low": fallbackColor, "Lowest": fallbackColor };
 const priorityTextColor = { "Highest": lateColor, "High": lateColor, "Medium": soonTextColor, "Low": fallbackTextColor, "Lowest": fallbackTextColor };
+// Escala teal original da prioridade, mantida apenas para o donut e a legenda
+// adjacente em renderPersonOverview (os badges da tabela usam priorityColor).
+const priorityChartColor = { "Highest": "#0E718F", "High": "#1B7A7A", "Medium": "#36C6C6", "Low": "#61B8D8", "Lowest": "#58E4A9" };
+const priorityChartTextColor = { "Highest": "#0E718F", "High": "#1B7A7A", "Medium": "#186666", "Low": "#22787F", "Lowest": "#22787F" };
 const areaColor = "#1F6E74";
 const hoursAreaColor = "#3AA0C7";
 
@@ -409,7 +413,7 @@ function renderPersonOverview(person) {
           <div style="display: flex; flex-direction: column; gap: 7px;">
             ${Object.entries(person.priority).map(([label, count]) => `
               <div style="display: flex; align-items: center; gap: 7px; font-size: 11.5px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${priorityColor[label] || fallbackColor}; flex-shrink: 0;"></span>
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${priorityChartColor[label] || fallbackColor}; flex-shrink: 0;"></span>
                 <span style="color: var(--muted);">${escapeHtml(label)}</span>
                 <span class="num" style="font-weight: 600; margin-left: auto;">${count}</span>
               </div>`).join("")}
@@ -445,7 +449,7 @@ function renderPersonOverview(person) {
   if (chart1) chart1.destroy();
   chart1 = mountChart("c1", Object.keys(person.priority).length > 0, () => ({
     type: "doughnut",
-    data: { labels: Object.keys(person.priority), datasets: [{ data: Object.values(person.priority), backgroundColor: Object.keys(person.priority).map(l => priorityColor[l] || fallbackColor), borderColor: "#ffffff", borderWidth: 2 }] },
+    data: { labels: Object.keys(person.priority), datasets: [{ data: Object.values(person.priority), backgroundColor: Object.keys(person.priority).map(l => priorityChartColor[l] || fallbackColor), borderColor: "#ffffff", borderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: "68%", plugins: { legend: { display: false } } }
   }));
 
