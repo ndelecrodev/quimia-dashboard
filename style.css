@@ -1,0 +1,179 @@
+:root {
+  --bg: #F1F7F6;
+  --surface: #FFFFFF;
+  --border: #DCEAE8;
+  --border-soft: #EBF5F3;
+  --ink: #142420;
+  --muted: #62766F;
+  --muted-soft: #8B9C96;
+  --teal: #1F6E74;
+  --teal-deep: #14504F;
+  --teal-wash: #EAF4F3;
+  --todo: #3AA0C7;
+  --todo-ink: #0E718F;
+  --doing: #36C6C6;
+  --doing-ink: #1B7A7A;
+  --done: #2CD195;
+  --done-ink: #158A64;
+  --late: #C24545;
+  --late-wash: #F7E6E3;
+  --shadow-sm: 0 1px 2px rgba(20, 36, 32, 0.04);
+  --shadow-card: 0 1px 3px rgba(20, 36, 32, 0.05), 0 8px 24px -16px rgba(20, 36, 32, 0.12);
+  --radius: 14px;
+  --radius-sm: 9px;
+}
+
+* { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  /* Anula a cascata dos cards e as trocas com fade quando o usuário
+     prefere menos movimento (a contagem dos KPIs é anulada no JS). */
+  .card, #content { animation-delay: 0ms !important; }
+}
+
+body {
+  margin: 0;
+  padding: 32px 24px 60px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(31, 110, 116, 0.06), transparent 45%),
+    var(--bg);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.display { font-family: "Fraunces", Georgia, serif; }
+
+button { font: inherit; }
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+.eyebrow {
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th {
+  text-align: left; font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600; padding: 0 12px 10px; border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+tbody tr { transition: background-color 120ms ease; }
+tbody tr:hover { background: var(--teal-wash); }
+
+.badge {
+  font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px; letter-spacing: 0.01em; white-space: nowrap;
+}
+
+.fade-in { animation: fadeIn 320ms ease both; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wrap { width: 100%; max-width: 1260px; margin: 0 auto; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: 18px;
+}
+
+.sidebar-btn {
+  text-align: left; border: none; background: transparent; padding: 9px 11px;
+  border-radius: var(--radius-sm); font-size: 12.5px; cursor: pointer; font-family: inherit;
+  color: var(--ink); display: flex; align-items: center; gap: 9px; width: 100%;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+.sidebar-btn:hover { background: var(--teal-wash); }
+
+.avatar-ring {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: #fff; font-family: "Fraunces", serif;
+}
+
+@media (max-width: 780px) {
+  .layout { grid-template-columns: 1fr; }
+  body { padding: 20px 14px 48px; }
+}
+
+/* ── Task 5: transições de troca de conteúdo ─────────────────────── */
+@keyframes contentSwap {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Task 5: refino de hover/press na navegação ──────────────────── */
+#project-btn { transition: filter 150ms ease, transform 120ms ease, background-color 150ms ease, color 150ms ease; }
+#project-btn:hover { filter: brightness(1.06); }
+#project-btn:active { transform: scale(0.985); }
+.sidebar-btn { transition: background-color 120ms ease, color 120ms ease, transform 120ms ease; }
+.sidebar-btn:active { transform: scale(0.99); }
+
+/* ── Task 4: campos do login com foco animado ────────────────────── */
+.auth-input {
+  border: 1px solid var(--border);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  background: var(--surface);
+  color: var(--ink);
+}
+.auth-input:focus {
+  outline: none;
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(31, 110, 116, 0.16);
+}
+#password-toggle { transition: color 150ms ease; }
+#password-toggle:hover { color: var(--teal); }
+
+/* ── Task 4: botão de submit com hover/press e estado de carregamento ── */
+#auth-submit {
+  position: relative;
+  transition: filter 150ms ease, transform 120ms ease, background-color 150ms ease;
+}
+#auth-submit:hover:not(:disabled) { filter: brightness(1.08); }
+#auth-submit:active:not(:disabled) { transform: scale(0.98); }
+#auth-submit:disabled { cursor: default; }
+#auth-submit.is-loading { color: transparent; }
+#auth-submit.is-loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  margin: -7.5px 0 0 -7.5px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Task 4: fade suave ao alternar entre entrar/cadastrar ────────── */
+@keyframes authSwap {
+  from { opacity: 0.15; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}

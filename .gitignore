@@ -1,0 +1,17 @@
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Diretórios de editores/IDEs
+.vscode/
+.idea/
+
+# Dependências (caso um build tool seja adicionado no futuro)
+node_modules/
+
+# Observação sobre segredos:
+# Este é um site estático servido pelo navegador. A única credencial no
+# código é a SUPABASE_ANON_KEY, que é pública por design (protegida por RLS
+# no Postgres) e já está documentada no README. Nenhum segredo real (ex.:
+# service_role) existe neste repositório, então NÃO há .env a ignorar hoje.
+# Se um dia um .env com segredos for introduzido, adicione ".env" aqui.

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quimia — Painel da equipe</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="auth-screen" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+  <div class="card fade-in" style="width: 100%; max-width: 392px; padding: 36px 34px;">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 26px;">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+        <path d="M11.85,1.21C11.47,0.83 10.46,0.83 9.56,1.00C8.65,1.17 7.50,1.56 6.43,2.25C5.35,2.95 3.99,3.89 3.09,5.17C2.18,6.46 1.28,8.41 1.00,9.97C0.72,11.54 0.86,13.35 1.42,14.57C1.97,15.78 2.98,16.86 4.34,17.28C5.70,17.70 9.42,17.45 9.56,17.07C9.70,16.69 6.04,15.99 5.17,14.98C4.30,13.97 4.20,12.20 4.34,11.02C4.48,9.83 4.76,9.17 6.01,7.89C7.26,6.60 10.88,4.41 11.85,3.30C12.83,2.18 12.23,1.59 11.85,1.21Z" fill="#97F7FF"/>
+        <path d="M19.78,13.31C18.88,11.82 16.48,10.32 14.98,9.77C13.49,9.21 11.57,9.56 10.81,9.97C10.04,10.39 9.73,11.19 10.39,12.27C11.05,13.35 14.15,15.30 14.77,16.44C15.40,17.59 14.57,18.39 14.15,19.16C13.73,19.92 13.70,20.27 12.27,21.03C10.84,21.80 5.73,23.09 5.59,23.75C5.45,24.41 9.52,25.07 11.43,25.00C13.35,24.93 15.57,24.37 17.07,23.33C18.57,22.29 19.96,20.41 20.41,18.74C20.86,17.07 20.69,14.81 19.78,13.31Z" fill="#58E4A9"/>
+      </svg>
+      <p class="display" style="font-size: 18px; font-weight: 600; margin: 0;">Quimia</p>
+    </div>
+    <p id="auth-title" style="font-size: 14px; font-weight: 600; margin: 0 0 4px;">Entrar</p>
+    <p id="auth-subtitle" style="font-size: 12px; color: var(--muted); margin: 0 0 20px;">Use o e-mail cadastrado no time.</p>
+
+    <form id="auth-form" novalidate>
+      <label style="font-size: 11px; color: var(--muted); font-weight: 500;">E-mail</label>
+      <input id="auth-email" class="auth-input" type="email" required autocomplete="email"
+        style="width: 100%; margin: 6px 0 0; padding: 10px 12px; border-radius: 9px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+      <p id="email-error" style="font-size: 10.5px; color: var(--late); margin: 5px 0 0; display: none;"></p>
+
+      <label style="font-size: 11px; color: var(--muted); font-weight: 500; display: block; margin-top: 14px;">Senha</label>
+      <div class="password-field" style="position: relative; margin: 6px 0 0;">
+        <input id="auth-password" class="auth-input" type="password" required autocomplete="current-password" minlength="6"
+          style="width: 100%; padding: 10px 40px 10px 12px; border-radius: 9px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+        <button type="button" id="password-toggle" aria-label="Mostrar senha"
+          style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted-soft); cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 6px;"></button>
+      </div>
+      <p id="password-hint" style="font-size: 10.5px; color: var(--late); margin: 5px 0 0; display: none;"></p>
+
+      <p id="signup-warning" style="font-size: 11px; color: var(--late); margin: 12px 0 0; line-height: 1.4; display: none;"></p>
+
+      <button type="submit" id="auth-submit" style="width: 100%; border: none; background: var(--teal); color: #fff; padding: 11px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 18px;">Entrar</button>
+    </form>
+
+    <p id="auth-error" style="font-size: 11.5px; color: var(--late); margin: 12px 0 0; display: none;"></p>
+    <p id="auth-info" style="font-size: 11.5px; color: var(--done-ink); margin: 12px 0 0; display: none;"></p>
+
+    <button id="auth-toggle" style="width: 100%; border: none; background: transparent; color: var(--teal); font-size: 11.5px; cursor: pointer; padding: 14px 0 0; text-align: center;">
+      Ainda não tenho conta — criar acesso
+    </button>
+  </div>
+</div>
+
+<div id="app-screen" style="display: none;">
+
+<div class="wrap">
+
+  <!-- Header: wordmark carries the "S" swirl icon, traced from the app's icon design. -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 18px; gap: 16px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+        <path d="M11.85,1.21C11.47,0.83 10.46,0.83 9.56,1.00C8.65,1.17 7.50,1.56 6.43,2.25C5.35,2.95 3.99,3.89 3.09,5.17C2.18,6.46 1.28,8.41 1.00,9.97C0.72,11.54 0.86,13.35 1.42,14.57C1.97,15.78 2.98,16.86 4.34,17.28C5.70,17.70 9.42,17.45 9.56,17.07C9.70,16.69 6.04,15.99 5.17,14.98C4.30,13.97 4.20,12.20 4.34,11.02C4.48,9.83 4.76,9.17 6.01,7.89C7.26,6.60 10.88,4.41 11.85,3.30C12.83,2.18 12.23,1.59 11.85,1.21Z" fill="#97F7FF"/>
+        <path d="M19.78,13.31C18.88,11.82 16.48,10.32 14.98,9.77C13.49,9.21 11.57,9.56 10.81,9.97C10.04,10.39 9.73,11.19 10.39,12.27C11.05,13.35 14.15,15.30 14.77,16.44C15.40,17.59 14.57,18.39 14.15,19.16C13.73,19.92 13.70,20.27 12.27,21.03C10.84,21.80 5.73,23.09 5.59,23.75C5.45,24.41 9.52,25.07 11.43,25.00C13.35,24.93 15.57,24.37 17.07,23.33C18.57,22.29 19.96,20.41 20.41,18.74C20.86,17.07 20.69,14.81 19.78,13.31Z" fill="#58E4A9"/>
+      </svg>
+      <p class="display" style="font-size: 21px; font-weight: 600; margin: 0; letter-spacing: -0.01em; line-height: 1.1;">Painel da equipe</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <p id="last-updated" class="num" style="font-size: 11.5px; color: var(--muted); margin: 0;">Carregando…</p>
+      <button id="logout-btn" style="border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 12px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">Sair</button>
+    </div>
+  </div>
+
+  <div class="card fade-in" style="padding: 16px 22px; margin-bottom: 18px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+      <span style="font-size: 13px; font-weight: 600;">Progresso geral do projeto</span>
+      <span id="progress-label" class="num" style="font-size: 12px; color: var(--muted);">—</span>
+    </div>
+    <div style="height: 9px; border-radius: 6px; background: var(--teal-wash); overflow: hidden;">
+      <div id="progress-bar" style="height: 100%; width: 0%; border-radius: 6px; background: linear-gradient(90deg, var(--doing), var(--done)); transition: width 400ms ease;"></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <div>
+      <button id="project-btn" style="width: 100%; display: flex; align-items: center; gap: 9px; border: 1px solid var(--teal); background: var(--teal); color: #fff; padding: 10px 13px; border-radius: 11px; cursor: pointer; font-size: 12.5px; font-weight: 600; margin-bottom: 20px; transition: filter 120ms ease;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6M10 3v5.5L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 8.5V3"/></svg>
+        Painel do projeto
+      </button>
+
+      <p class="eyebrow" style="margin: 0 0 9px; padding-left: 2px;">Colaborador</p>
+      <div id="people-list" style="display: flex; flex-direction: column; gap: 2px;"></div>
+    </div>
+
+    <div>
+      <div id="view-tabs" style="display: inline-flex; padding: 3px; background: var(--teal-wash); border-radius: 11px; margin-bottom: 16px;"></div>
+      <div id="content"></div>
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+<!-- fecha #app-screen -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
