@@ -35,9 +35,9 @@
       <label style="font-size: 11px; color: var(--muted); font-weight: 500; display: block; margin-top: 14px;">Senha</label>
       <div class="password-field" style="position: relative; margin: 6px 0 0;">
         <input id="auth-password" class="auth-input" type="password" required autocomplete="current-password" minlength="6"
-          style="width: 100%; padding: 10px 40px 10px 12px; border-radius: 9px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
+          style="width: 100%; padding: 10px 46px 10px 12px; border-radius: 9px; font-size: 13px; font-family: inherit; box-sizing: border-box;">
         <button type="button" id="password-toggle" aria-label="Mostrar senha"
-          style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted-soft); cursor: pointer; padding: 4px; display: flex; align-items: center; border-radius: 6px;"></button>
+          style="position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: none; background: transparent; color: var(--muted-soft); cursor: pointer; padding: 8px; display: flex; align-items: center; border-radius: 6px;"></button>
       </div>
       <p id="password-hint" style="font-size: 10.5px; color: var(--late); margin: 5px 0 0; display: none;"></p>
 
@@ -70,7 +70,7 @@
     </div>
     <div style="display: flex; align-items: center; gap: 14px;">
       <p id="last-updated" class="num" style="font-size: 11.5px; color: var(--muted); margin: 0;">Carregando…</p>
-      <button id="logout-btn" style="border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 12px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">Sair</button>
+      <button id="logout-btn" class="btn-outline">Sair</button>
     </div>
   </div>
 
@@ -97,7 +97,7 @@
     </div>
 
     <div>
-      <div id="view-tabs" style="display: inline-flex; padding: 3px; background: var(--teal-wash); border-radius: 11px; margin-bottom: 16px;"></div>
+      <div id="view-tabs" style="display: inline-flex; flex-wrap: wrap; padding: 3px; background: var(--teal-wash); border-radius: 11px; margin-bottom: 16px;"></div>
       <div id="content"></div>
     </div>
 

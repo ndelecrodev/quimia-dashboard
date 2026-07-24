@@ -73,7 +73,7 @@ button:focus-visible,
   font-weight: 600;
 }
 
-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 12.5px; }
 th {
   text-align: left; font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase;
   color: var(--muted); font-weight: 600; padding: 0 12px 10px; border-bottom: 1px solid var(--border);
@@ -115,9 +115,52 @@ tbody tr:hover { background: var(--teal-wash); }
   font-size: 10px; font-weight: 700; color: #fff; font-family: "Fraunces", serif;
 }
 
+/* ── Mobile pass: chart containers, chart grids, KPI row, buttons ───── */
+.chart-box { position: relative; width: 100%; height: 140px; }
+.chart-box-sm { position: relative; width: 100%; height: 108px; }
+.chart-donut-box { position: relative; width: 108px; height: 108px; flex-shrink: 0; }
+
+.charts-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.charts-grid-3 { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+.kpi-row { display: flex; gap: 22px; flex-wrap: wrap; }
+.kpi-value { font-size: 17px; font-weight: 600; margin: 0; }
+
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+  padding: 6px 12px; border-radius: 8px; font-size: 11.5px; cursor: pointer;
+}
+
+.export-row { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 8px 0; margin-bottom: 14px; flex-wrap: wrap; }
+
+/* Project overview's 3-col grid needs more room than the sidebar/content
+   split, so it collapses before the .layout breakpoint kicks in. */
+@media (max-width: 900px) {
+  .charts-grid-3 { grid-template-columns: minmax(0, 1fr); }
+}
+
 @media (max-width: 780px) {
-  .layout { grid-template-columns: 1fr; }
+  /* minmax(0, 1fr), not plain 1fr: a bare 1fr track still has an implicit
+     min-width of "auto" (content-based), so the table's min-width: 640px
+     inside would stretch the whole single-column layout instead of staying
+     scoped to its own overflow-x: auto wrapper. */
+  .layout { grid-template-columns: minmax(0, 1fr); }
   body { padding: 20px 14px 48px; }
+  .charts-grid-2 { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .chart-box { height: 116px; }
+  .chart-box-sm { height: 92px; }
+  .chart-donut-box { width: 84px; height: 84px; }
+  .sidebar-btn { padding: 11px 12px; font-size: 13px; }
+  .btn-outline { padding: 10px 14px; min-height: 40px; }
+}
+
+@media (max-width: 400px) {
+  .kpi-row { gap: 14px; }
+  .kpi-value { font-size: 15px; }
 }
 
 /* ── Task 5: transições de troca de conteúdo ─────────────────────── */
