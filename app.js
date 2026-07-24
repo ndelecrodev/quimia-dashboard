@@ -355,24 +355,26 @@ function renderDetails() {
   const rows = tasks.map(t => taskRow(t, isProject)).join("");
 
   contentEl.innerHTML = `
-    <div class="card fade-in" style="padding: 6px 8px; overflow-x: auto;">
+    <div class="card fade-in" style="padding: 6px 8px;">
       ${rows ? `
-      <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 8px 8px 0; margin-bottom: 14px;">
-        <button onclick="exportDetailsCSV()" class="btn-outline" style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 12px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">
+      <div class="export-row">
+        <button onclick="exportDetailsCSV()" class="btn-outline">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>
           Exportar CSV
         </button>
-        <button onclick="exportDetailsXLSX()" class="btn-outline" style="display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); padding: 6px 12px; border-radius: 8px; font-size: 11.5px; cursor: pointer;">
+        <button onclick="exportDetailsXLSX()" class="btn-outline">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6M9 13l3 4m0-4l-3 4"/></svg>
           Exportar Excel
         </button>
       </div>
-      <table>
-        <thead><tr>
-          <th>ID</th><th>Tarefa</th>${isProject ? "<th>Responsável</th>" : ""}<th>Status</th><th>Prioridade</th><th>Prazo</th><th>Restante</th><th>Etiquetas</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>` : emptyState("Nenhuma tarefa por aqui ainda.")}
+      <div style="overflow-x: auto;">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Tarefa</th>${isProject ? "<th>Responsável</th>" : ""}<th>Status</th><th>Prioridade</th><th>Prazo</th><th>Restante</th><th>Etiquetas</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>` : emptyState("Nenhuma tarefa por aqui ainda.")}
     </div>`;
 }
 
@@ -384,18 +386,18 @@ function renderPersonOverview(person) {
         <p class="display" style="font-weight: 600; font-size: 16px; margin: 0;">${escapeHtml(person.name)}</p>
         <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0;">${escapeHtml(person.area)}</p>
       </div>
-      <div style="display: flex; gap: 22px;">
+      <div class="kpi-row">
         <div>
           <p class="eyebrow" style="margin: 0 0 3px;">Concluídas</p>
-          <p class="num" style="font-size: 17px; font-weight: 600; margin: 0; color: var(--done-ink);"><span data-count-to="${person.kpis.done}">0</span><span style="color: var(--muted-soft); font-size: 12px;">/${person.kpis.total}</span></p>
+          <p class="num kpi-value" style="color: var(--done-ink);"><span data-count-to="${person.kpis.done}">0</span><span style="color: var(--muted-soft); font-size: 12px;">/${person.kpis.total}</span></p>
         </div>
         <div>
           <p class="eyebrow" style="margin: 0 0 3px;">Atrasadas</p>
-          <p class="num" style="font-size: 17px; font-weight: 600; margin: 0; color: ${person.kpis.late > 0 ? "var(--late)" : "var(--ink)"};"><span data-count-to="${person.kpis.late}">0</span></p>
+          <p class="num kpi-value" style="color: ${person.kpis.late > 0 ? "var(--late)" : "var(--ink)"};"><span data-count-to="${person.kpis.late}">0</span></p>
         </div>
         <div>
           <p class="eyebrow" style="margin: 0 0 3px;">Horas</p>
-          <p class="num" style="font-size: 17px; font-weight: 600; margin: 0;"><span data-count-to="${person.kpis.hours}" data-count-format="hoursmin">${formatHoursMinutes(0)}</span></p>
+          <p class="num kpi-value"><span data-count-to="${person.kpis.hours}" data-count-format="hoursmin">${formatHoursMinutes(0)}</span></p>
         </div>
       </div>
     </div>
@@ -405,11 +407,11 @@ function renderPersonOverview(person) {
       <div style="display: flex; gap: 9px; flex-wrap: wrap;">${Object.keys(person.status).length ? tilesHTML(person.status, statusColor, statusTextColor) : chartEmpty("Nenhuma tarefa registrada.")}</div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+    <div class="charts-grid-2">
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Tarefas por prioridade</p>
-        <div style="display: flex; align-items: center; gap: 16px;">
-          <div style="position: relative; width: 108px; height: 108px; flex-shrink: 0;"><canvas id="c1" role="img" aria-label="Tarefas por prioridade"></canvas></div>
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div class="chart-donut-box"><canvas id="c1" role="img" aria-label="Tarefas por prioridade"></canvas></div>
           <div style="display: flex; flex-direction: column; gap: 7px;">
             ${Object.entries(person.priority).map(([label, count]) => `
               <div style="display: flex; align-items: center; gap: 7px; font-size: 11.5px;">
@@ -422,7 +424,7 @@ function renderPersonOverview(person) {
       </div>
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Horas apontadas (trimestre)</p>
-        <div style="position: relative; width: 100%; height: 108px;"><canvas id="c2" role="img" aria-label="Horas apontadas por mês"></canvas></div>
+        <div class="chart-box-sm"><canvas id="c2" role="img" aria-label="Horas apontadas por mês"></canvas></div>
       </div>
     </div>
 
@@ -457,7 +459,7 @@ function renderPersonOverview(person) {
   chart2 = mountChart("c2", person.months.length > 0, () => ({
     type: "line",
     data: { labels: person.months, datasets: [{ data: person.hoursSeries, borderColor: "#1F6E74", backgroundColor: "rgba(31,110,116,0.08)", fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: "#1F6E74" }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => formatHoursMinutes(ctx.parsed.y) } } },
       scales: { y: { beginAtZero: true, grid: { color: "#EBF5F3" } }, x: { grid: { display: false } } } }
   }));
 }
@@ -473,10 +475,10 @@ function renderProjectOverview() {
         <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0;">Todas as áreas e colaboradores</p>
       </div>
     </div>
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+    <div class="charts-grid-3">
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Tarefas por área</p>
-        <div style="position: relative; width: 100%; height: 140px;"><canvas id="c1" role="img" aria-label="Tarefas por área"></canvas></div>
+        <div class="chart-box"><canvas id="c1" role="img" aria-label="Tarefas por área"></canvas></div>
       </div>
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Status geral</p>
@@ -484,7 +486,7 @@ function renderProjectOverview() {
       </div>
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Horas por funcionário</p>
-        <div style="position: relative; width: 100%; height: 140px;"><canvas id="c2" role="img" aria-label="Horas por funcionário"></canvas></div>
+        <div class="chart-box"><canvas id="c2" role="img" aria-label="Horas por funcionário"></canvas></div>
       </div>
     </div>
     <div class="card fade-in" style="padding: 15px 20px;">
@@ -520,7 +522,7 @@ function renderProjectOverview() {
   chart2 = mountChart("c2", Object.keys(project.hoursByArea).length > 0, () => ({
     type: "bar",
     data: { labels: Object.keys(project.hoursByArea), datasets: [{ data: Object.values(project.hoursByArea), backgroundColor: hoursAreaColor, borderRadius: 5, maxBarThickness: 22 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => formatHoursMinutes(ctx.parsed.y) } } },
       scales: { y: { beginAtZero: true, grid: { color: "#EBF5F3" } }, x: { grid: { display: false } } } }
   }));
 }
