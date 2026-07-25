@@ -850,26 +850,28 @@ function setHeaderState(state, timestamp) {
 async function loadDashboardData() {
   setHeaderState("loading");
 
-  const [funcionariosRes, tarefasRes, horasRes] = await Promise.all([
+  const [funcionariosRes, tarefasRes, horasRes, funcionarioAreaRes] = await Promise.all([
     supabaseClient.from("funcionarios").select("id, canonical_name, jira_email, clockify_email, photo_url"),
     supabaseClient.from("tarefas").select(`
       task_id, titulo, responsavel_id, area, prioridade, status, data_criacao, prazo, data_conclusao, tipo, criador, data_atualizacao,
       tarefa_etiqueta ( etiquetas ( nome ) )
     `),
     supabaseClient.from("horas").select("entry_id, funcionario_id, data, horas"),
+    supabaseClient.from("funcionario_area").select("funcionario_id, areas ( nome )"),
   ]);
 
   // Erros de query são avaliados de forma independente, para dizer exatamente
-  // qual das três consultas falhou e mostrar a mensagem/detalhe/dica reais.
+  // qual das consultas falhou e mostrar a mensagem/detalhe/dica reais.
   const queryErrors = [];
   if (funcionariosRes.error) queryErrors.push(describePostgrestError("Colaboradores (funcionarios)", funcionariosRes.error));
   if (tarefasRes.error) queryErrors.push(describePostgrestError("Tarefas (tarefas)", tarefasRes.error));
   if (horasRes.error) queryErrors.push(describePostgrestError("Horas (horas)", horasRes.error));
+  if (funcionarioAreaRes.error) queryErrors.push(describePostgrestError("Áreas por colaborador (funcionario_area)", funcionarioAreaRes.error));
 
   if (queryErrors.length) {
     contentEl.innerHTML = errorState("Não foi possível carregar os dados", queryErrors);
     listEl.innerHTML = "";
-    [funcionariosRes.error, tarefasRes.error, horasRes.error].filter(Boolean).forEach(e => console.error(e));
+    [funcionariosRes.error, tarefasRes.error, horasRes.error, funcionarioAreaRes.error].filter(Boolean).forEach(e => console.error(e));
     setHeaderState("error");
     return;
   }
@@ -877,6 +879,7 @@ async function loadDashboardData() {
   const funcionarios = funcionariosRes.data || [];
   const tarefas = tarefasRes.data || [];
   const horas = horasRes.data || [];
+  const funcionarioAreas = funcionarioAreaRes.data || [];
 
   // Monta a lista de pessoas a partir de funcionarios, e agrega tarefas/horas por id.
   people = funcionarios.map((f, i) => {
@@ -909,10 +912,12 @@ async function loadDashboardData() {
       };
     });
 
-    // Área da pessoa: derivada das áreas das próprias tarefas, já que não
-    // existe (ainda) uma tabela de vínculo funcionário-área no Postgres,
-    // diferente do que já existe no Excel (FATO_FUNCIONARIO_AREA).
-    const areas = [...new Set(myTasks.map(t => t.area).filter(Boolean))];
+    // Área da pessoa: vem da tabela de vínculo funcionario_area (com o nome
+    // em areas) no Postgres — não é mais derivada das áreas das tarefas.
+    const areas = funcionarioAreas
+      .filter(fa => fa.funcionario_id === f.id)
+      .map(fa => fa.areas?.nome)
+      .filter(Boolean);
 
     // Horas por mês (últimos 3 meses com dado).
     const hoursByMonth = {};
