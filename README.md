@@ -28,7 +28,16 @@ o Supabase por dois canais do SDK `@supabase/supabase-js`:
 
 - **Auth**: login e cadastro por e-mail/senha.
 - **PostgREST**: consultas às tabelas `funcionarios`, `tarefas`, `horas`,
-  `etiquetas` e `tarefa_etiqueta`, feitas com a sessão do usuário logado.
+  `etiquetas`, `tarefa_etiqueta`, `funcionario_area` e `areas`, feitas com
+  a sessão do usuário logado.
+
+A área de cada pessoa vem do vínculo em `funcionario_area` (com o nome em
+`areas`), já não é mais derivada das áreas das tarefas atribuídas a ela.
+
+A consulta a `tarefas` filtra `arquivada_em is null`. Tarefas que saem da
+consulta Jira de origem ficam arquivadas no Postgres em vez de apagadas, e
+o dashboard as exclui por completo: não aparecem em lista, gráfico,
+contagem ou export nenhum.
 
 Toda a lógica de exibição (agregações por pessoa/área, gráficos, export)
 roda no navegador em cima do que essas consultas devolvem. Não há

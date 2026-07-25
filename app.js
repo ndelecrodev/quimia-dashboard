@@ -855,7 +855,7 @@ async function loadDashboardData() {
     supabaseClient.from("tarefas").select(`
       task_id, titulo, responsavel_id, area, prioridade, status, data_criacao, prazo, data_conclusao, tipo, criador, data_atualizacao,
       tarefa_etiqueta ( etiquetas ( nome ) )
-    `),
+    `).is("arquivada_em", null),
     supabaseClient.from("horas").select("entry_id, funcionario_id, data, horas"),
     supabaseClient.from("funcionario_area").select("funcionario_id, areas ( nome )"),
   ]);
