@@ -1,5 +1,8 @@
 # quimia-dashboard
 
+> Also published as a browsable site at
+> https://ndelecrodev.github.io/task-time-sync-docs/
+
 Static dashboard (HTML, CSS, and plain JavaScript, no framework, no build
 step) for tracking the team's tasks and hours. Data comes straight from the
 Postgres/Supabase database that the `task-time-sync` pipeline keeps
