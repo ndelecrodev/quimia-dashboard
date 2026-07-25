@@ -1,7 +1,9 @@
 # quimia-dashboard
 
+
 > Também publicado como site navegável em
 > https://ndelecrodev.github.io/task-time-sync-docs/
+
 
 Dashboard estático (HTML, CSS e JavaScript puro, sem framework e sem build
 step) para acompanhar tarefas e horas do time. Os dados vêm direto do
