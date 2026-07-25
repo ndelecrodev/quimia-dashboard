@@ -28,8 +28,17 @@ Supabase directly through two channels of the `@supabase/supabase-js` SDK:
 
 - **Auth**: email/password login and signup.
 - **PostgREST**: queries against the `funcionarios`, `tarefas`, `horas`,
-  `etiquetas`, and `tarefa_etiqueta` tables, run with the logged-in user's
-  session.
+  `etiquetas`, `tarefa_etiqueta`, `funcionario_area`, and `areas` tables,
+  run with the logged-in user's session.
+
+A person's area comes from the link in `funcionario_area` (with the name
+in `areas`), it is no longer derived from the areas of the tasks assigned
+to them.
+
+The `tarefas` query filters on `arquivada_em is null`. Tasks that drop out
+of the source Jira query get archived in Postgres instead of deleted, and
+the dashboard excludes them entirely: they do not show up in any list,
+chart, count, or export.
 
 All the display logic (per-person/area aggregation, charts, export) runs in
 the browser on top of whatever those queries return. There's no
