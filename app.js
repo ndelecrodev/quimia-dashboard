@@ -150,9 +150,9 @@ function escapeHtml(value) {
 
 // Fonte única do avatar de uma pessoa: foto quando houver (photoUrl), senão
 // o círculo de iniciais colorido — mesmas dimensões circulares em ambos os
-// casos. Usada tanto na sidebar (24px) quanto no cabeçalho da pessoa (52px)
+// casos. Usada tanto na sidebar (32px) quanto no cabeçalho da pessoa (68px)
 // para o markup não divergir entre os pontos de uso.
-const AVATAR_FONT_BY_SIZE = { 24: 10, 52: 16 };
+const AVATAR_FONT_BY_SIZE = { 32: 13, 68: 21 };
 
 function initialsCircleHTML(person, sizePx) {
   const fontPx = AVATAR_FONT_BY_SIZE[sizePx] || Math.round(sizePx * 0.4);
@@ -173,7 +173,7 @@ function avatarHTML(person, sizePx) {
 // Substitui um <img> de avatar que falhou pelo círculo de iniciais equivalente.
 // Global de propósito: é chamada pelo onerror inline dos <img> gerados acima.
 function avatarImgFallback(img) {
-  const size = Number(img.dataset.size) || 24;
+  const size = Number(img.dataset.size) || 32;
   const fontPx = AVATAR_FONT_BY_SIZE[size] || Math.round(size * 0.4);
   const span = document.createElement("span");
   span.className = "avatar-ring";
@@ -381,22 +381,22 @@ function renderDetails() {
 function renderPersonOverview(person) {
   contentEl.innerHTML = `
     <div class="card fade-in" style="padding: 18px 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-      ${avatarHTML(person, 52)}
+      ${avatarHTML(person, 68)}
       <div style="flex: 1; min-width: 160px;">
         <p class="display" style="font-weight: 600; font-size: 16px; margin: 0;">${escapeHtml(person.name)}</p>
         <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0;">${escapeHtml(person.area)}</p>
       </div>
       <div class="kpi-row">
         <div>
-          <p class="eyebrow" style="margin: 0 0 3px;">Concluídas</p>
+          <p class="eyebrow kpi-label" style="margin: 0 0 3px;">Concluídas</p>
           <p class="num kpi-value" style="color: var(--done-ink);"><span data-count-to="${person.kpis.done}">0</span><span style="color: var(--muted-soft); font-size: 12px;">/${person.kpis.total}</span></p>
         </div>
         <div>
-          <p class="eyebrow" style="margin: 0 0 3px;">Atrasadas</p>
+          <p class="eyebrow kpi-label" style="margin: 0 0 3px;">Atrasadas</p>
           <p class="num kpi-value" style="color: ${person.kpis.late > 0 ? "var(--late)" : "var(--ink)"};"><span data-count-to="${person.kpis.late}">0</span></p>
         </div>
         <div>
-          <p class="eyebrow" style="margin: 0 0 3px;">Horas</p>
+          <p class="eyebrow kpi-label" style="margin: 0 0 3px;">Horas</p>
           <p class="num kpi-value"><span data-count-to="${person.kpis.hours}" data-count-format="hoursmin">${formatHoursMinutes(0)}</span></p>
         </div>
       </div>
@@ -989,7 +989,7 @@ async function loadDashboardData() {
   people.forEach((p, i) => {
     const btn = document.createElement("button");
     btn.className = "sidebar-btn";
-    btn.innerHTML = `${avatarHTML(p, 24)}<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p.name)}</span>`;
+    btn.innerHTML = `${avatarHTML(p, 32)}<span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(p.name)}</span>`;
     btn.onclick = () => selectPerson(i);
     listEl.appendChild(btn);
   });
