@@ -127,6 +127,13 @@ tbody tr:hover { background: var(--teal-wash); }
 .kpi-value { font-size: 20px; font-weight: 600; margin: 0; }
 .kpi-label { font-size: 11.5px; }
 
+/* Person overview header: avatar + name/area + kpi-row. Broken out into
+   classes (not inline) so the mobile breakpoints below can resize them. */
+.person-header-card { padding: 18px 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.person-header-info { flex: 1; min-width: 160px; }
+.person-name { font-weight: 600; font-size: 19px; margin: 0; }
+.person-area { font-size: 13.5px; color: var(--muted); margin: 3px 0 0; }
+
 .btn-outline {
   display: inline-flex; align-items: center; gap: 6px;
   border: 1px solid var(--border); background: var(--surface); color: var(--muted);
@@ -157,11 +164,27 @@ tbody tr:hover { background: var(--teal-wash); }
   .chart-donut-box { width: 84px; height: 84px; }
   .sidebar-btn { padding: 11px 12px; font-size: 13px; }
   .btn-outline { padding: 10px 14px; min-height: 40px; }
+
+  /* Person header: at this width the kpi-row wraps onto its own line below
+     avatar+name (they no longer share a row at 68px avatar + 19px name), so
+     shrink each piece to keep that second line from looking like an
+     afterthought. .person-avatar needs !important: its width/height/font-size
+     are set inline per sizePx by avatarHTML(), which normal specificity can't beat. */
+  .person-header-card { gap: 12px; padding: 15px 16px; }
+  .person-avatar { width: 56px !important; height: 56px !important; font-size: 17px !important; }
+  .person-name { font-size: 17px; }
+  .person-area { font-size: 12.5px; }
+  .kpi-row { gap: 16px; }
+  .kpi-value { font-size: 17px; }
 }
 
 @media (max-width: 400px) {
-  .kpi-row { gap: 14px; }
-  .kpi-value { font-size: 15px; }
+  .person-header-card { gap: 10px; padding: 14px; }
+  .person-avatar { width: 50px !important; height: 50px !important; font-size: 15px !important; }
+  .person-name { font-size: 15.5px; }
+  .person-area { font-size: 11.5px; }
+  .kpi-row { gap: 12px; }
+  .kpi-value { font-size: 16px; }
 }
 
 /* ── Task 5: transições de troca de conteúdo ─────────────────────── */

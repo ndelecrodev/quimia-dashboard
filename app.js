@@ -154,17 +154,20 @@ function escapeHtml(value) {
 // para o markup não divergir entre os pontos de uso.
 const AVATAR_FONT_BY_SIZE = { 32: 13, 68: 21 };
 
-function initialsCircleHTML(person, sizePx) {
+function initialsCircleHTML(person, sizePx, extraClass = "") {
   const fontPx = AVATAR_FONT_BY_SIZE[sizePx] || Math.round(sizePx * 0.4);
-  return `<span class="avatar-ring" style="width: ${sizePx}px; height: ${sizePx}px; font-size: ${fontPx}px; background: ${person.ringColor};">${escapeHtml(person.initials)}</span>`;
+  return `<span class="avatar-ring${extraClass ? " " + extraClass : ""}" style="width: ${sizePx}px; height: ${sizePx}px; font-size: ${fontPx}px; background: ${person.ringColor};">${escapeHtml(person.initials)}</span>`;
 }
 
-function avatarHTML(person, sizePx) {
-  if (!person.photoUrl) return initialsCircleHTML(person, sizePx);
+// extraClass: hook para overrides responsivos via CSS (ex: !important em
+// media query) já que width/height/font-size aqui são inline, definidos
+// dinamicamente por sizePx.
+function avatarHTML(person, sizePx, extraClass = "") {
+  if (!person.photoUrl) return initialsCircleHTML(person, sizePx, extraClass);
   // Foto presente: <img> circular. Se a URL falhar (link quebrado, arquivo
   // apagado, rede), onerror troca a imagem pelo círculo de iniciais — nunca
   // deixamos aparecer o ícone de imagem quebrada.
-  return `<img src="${escapeHtml(person.photoUrl)}" alt="${escapeHtml(person.name)}"
+  return `<img src="${escapeHtml(person.photoUrl)}" alt="${escapeHtml(person.name)}"${extraClass ? ` class="${extraClass}"` : ""}
     style="width: ${sizePx}px; height: ${sizePx}px; border-radius: 50%; object-fit: cover; flex-shrink: 0; display: block; background: ${person.ringColor};"
     data-initials="${escapeHtml(person.initials)}" data-ring="${escapeHtml(person.ringColor)}" data-size="${sizePx}"
     onerror="avatarImgFallback(this)">`;
@@ -176,7 +179,8 @@ function avatarImgFallback(img) {
   const size = Number(img.dataset.size) || 32;
   const fontPx = AVATAR_FONT_BY_SIZE[size] || Math.round(size * 0.4);
   const span = document.createElement("span");
-  span.className = "avatar-ring";
+  const extraClass = Array.from(img.classList).filter(c => c !== "avatar-ring").join(" ");
+  span.className = extraClass ? `avatar-ring ${extraClass}` : "avatar-ring";
   span.style.width = size + "px";
   span.style.height = size + "px";
   span.style.fontSize = fontPx + "px";
@@ -241,6 +245,17 @@ function mountChart(canvasId, hasData, configFactory) {
     return null;
   }
   return new Chart(canvas, configFactory());
+}
+
+// Rótulo de eixo abreviado: primeiro nome + inicial do segundo token + ".".
+// ex: "Miguel Felix Cardozo de Tomy" -> "Miguel F.", "Nicolas Delecrode" ->
+// "Nicolas D.". Nome de uma palavra só é devolvido como está (sem ponto),
+// já que não há um segundo token para abreviar. Curto o bastante para o
+// auto-skip/auto-rotation padrão do Chart.js lidar bem sem ajuda extra.
+function abbreviateNameLabel(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return parts[0] || "";
+  return `${parts[0]} ${parts[1].charAt(0).toUpperCase()}.`;
 }
 
 // Rótulo da coluna "Restante" — fonte única da verdade compartilhada entre
@@ -380,11 +395,11 @@ function renderDetails() {
 
 function renderPersonOverview(person) {
   contentEl.innerHTML = `
-    <div class="card fade-in" style="padding: 18px 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-      ${avatarHTML(person, 68)}
-      <div style="flex: 1; min-width: 160px;">
-        <p class="display" style="font-weight: 600; font-size: 16px; margin: 0;">${escapeHtml(person.name)}</p>
-        <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0;">${escapeHtml(person.area)}</p>
+    <div class="card fade-in person-header-card">
+      ${avatarHTML(person, 68, "person-avatar")}
+      <div class="person-header-info">
+        <p class="display person-name">${escapeHtml(person.name)}</p>
+        <p class="person-area">${escapeHtml(person.area)}</p>
       </div>
       <div class="kpi-row">
         <div>
@@ -522,8 +537,21 @@ function renderProjectOverview() {
   chart2 = mountChart("c2", Object.keys(project.hoursByArea).length > 0, () => ({
     type: "bar",
     data: { labels: Object.keys(project.hoursByArea), datasets: [{ data: Object.values(project.hoursByArea), backgroundColor: hoursAreaColor, borderRadius: 5, maxBarThickness: 22 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => formatHoursMinutes(ctx.parsed.y) } } },
-      scales: { y: { beginAtZero: true, grid: { color: "#EBF5F3" } }, x: { grid: { display: false } } } }
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        // title reads the full name straight from the original labels array by
+        // index, not the abbreviated axis label, so hovering still reveals who
+        // the bar actually represents.
+        tooltip: { callbacks: { title: (items) => Object.keys(project.hoursByArea)[items[0].dataIndex], label: (ctx) => formatHoursMinutes(ctx.parsed.y) } }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: "#EBF5F3" } },
+        x: {
+          grid: { display: false },
+          ticks: { callback: function (value) { return abbreviateNameLabel(this.getLabelForValue(value)); } }
+        }
+      } }
   }));
 }
 
