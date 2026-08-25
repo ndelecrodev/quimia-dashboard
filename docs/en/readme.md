@@ -18,7 +18,7 @@ English (this file).
 A read-only panel for the team to check its own progress: tasks by person
 and by project, logged hours, deadlines, and an exportable breakdown. There
 is no task creation or editing in the site itself, that's the job of the
-task-time-sync pipeline (Jira + Clockify → Postgres). The dashboard is just
+task-time-sync pipeline (ClickUp + Clockify → Postgres). The dashboard is just
 the viewing layer on top of the same database.
 
 ## Architecture
@@ -36,7 +36,7 @@ in `areas`), it is no longer derived from the areas of the tasks assigned
 to them.
 
 The `tarefas` query filters on `arquivada_em is null`. Tasks that drop out
-of the source Jira query get archived in Postgres instead of deleted, and
+of the source ClickUp query get archived in Postgres instead of deleted, and
 the dashboard excludes them entirely: they do not show up in any list,
 chart, count, or export.
 
@@ -49,7 +49,7 @@ code.** The `SUPABASE_ANON_KEY` visible in `app.js` is public by design:
 it's Supabase's `anon` key, made to run in the browser and sit in
 source code in plain sight, and it grants no access on its own. Each RLS
 policy only releases rows for the authenticated user whose email matches
-`funcionarios.jira_email`/`clockify_email`; an anonymous session, or one
+`funcionarios.clickup_email`/`clockify_email`; an anonymous session, or one
 belonging to someone not on that list, sees zero rows in every table. The
 two migrations checked into `sql/` cover the helper functions behind that
 setup. The rest of the RLS policies, including `is_registered_employee()`,
@@ -157,7 +157,7 @@ Edge Function in front of signup, a bigger change, out of scope for now.
 
 ## Relationship to the other repositories
 
-- **task-time-sync**: the pipeline that syncs Jira and Clockify into the
+- **task-time-sync**: the pipeline that syncs ClickUp and Clockify into the
   same Postgres/Supabase database this dashboard reads from. This
   repository never writes to those tables, only queries them.
 - **task-time-sync-docs**: the documentation site (MkDocs) with the fuller
