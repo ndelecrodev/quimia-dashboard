@@ -138,7 +138,7 @@ function playContentSwap() {
 
 // Escapa texto vindo do banco antes de injetar via innerHTML — defesa em
 // profundidade contra XSS. O write path hoje é o pipeline Python (confiável,
-// Jira/Clockify), mas nunca confiamos em dado de query ao montar HTML.
+// ClickUp/Clockify), mas nunca confiamos em dado de query ao montar HTML.
 function escapeHtml(value) {
   return String(value == null ? "" : value)
     .replace(/&/g, "&amp;")
@@ -879,7 +879,7 @@ async function loadDashboardData() {
   setHeaderState("loading");
 
   const [funcionariosRes, tarefasRes, horasRes, funcionarioAreaRes] = await Promise.all([
-    supabaseClient.from("funcionarios").select("id, canonical_name, jira_email, clockify_email, photo_url"),
+    supabaseClient.from("funcionarios").select("id, canonical_name, clickup_email, clockify_email, photo_url"),
     supabaseClient.from("tarefas").select(`
       task_id, titulo, responsavel_id, area, prioridade, status, data_criacao, prazo, data_conclusao, tipo, criador, data_atualizacao,
       tarefa_etiqueta ( etiquetas ( nome ) )

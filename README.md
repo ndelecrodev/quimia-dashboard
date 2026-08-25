@@ -18,7 +18,7 @@ Disponível em português (este arquivo, padrão) e em inglês, em
 Um painel de leitura para o time acompanhar o próprio progresso: tarefas por
 pessoa e por projeto, horas apontadas, prazos e um detalhamento exportável.
 Não existe cadastro de tarefas nem edição de dado nenhum pelo site, quem
-escreve é o pipeline task-time-sync (Jira + Clockify → Postgres). O
+escreve é o pipeline task-time-sync (ClickUp + Clockify → Postgres). O
 dashboard é só a camada de visualização sobre o mesmo banco.
 
 ## Arquitetura
@@ -35,7 +35,7 @@ A área de cada pessoa vem do vínculo em `funcionario_area` (com o nome em
 `areas`), já não é mais derivada das áreas das tarefas atribuídas a ela.
 
 A consulta a `tarefas` filtra `arquivada_em is null`. Tarefas que saem da
-consulta Jira de origem ficam arquivadas no Postgres em vez de apagadas, e
+consulta ClickUp de origem ficam arquivadas no Postgres em vez de apagadas, e
 o dashboard as exclui por completo: não aparecem em lista, gráfico,
 contagem ou export nenhum.
 
@@ -48,7 +48,7 @@ site.** A `SUPABASE_ANON_KEY` que aparece em `app.js` é pública por design:
 é a chave `anon` do Supabase, feita para rodar no navegador e ficar visível
 no código-fonte, e não concede acesso a nada por si só. Cada política de
 RLS só libera as linhas do usuário autenticado cujo e-mail conste em
-`funcionarios.jira_email`/`clockify_email`; uma sessão anônima ou de
+`funcionarios.clickup_email`/`clockify_email`; uma sessão anônima ou de
 alguém não cadastrado enxerga zero linhas em qualquer tabela. As duas
 migrações versionadas em `sql/` cobrem as funções auxiliares desse
 controle. O restante das políticas de RLS, incluindo
@@ -156,7 +156,7 @@ escopo atual.
 
 ## Relação com os outros repositórios
 
-- **task-time-sync**: o pipeline que sincroniza Jira e Clockify para o
+- **task-time-sync**: o pipeline que sincroniza ClickUp e Clockify para o
   mesmo Postgres/Supabase que este dashboard lê. Este repositório não
   escreve nessas tabelas, só consulta.
 - **task-time-sync-docs**: site de documentação (MkDocs) com a visão mais
