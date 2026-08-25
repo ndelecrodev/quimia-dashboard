@@ -263,6 +263,7 @@ function abbreviateNameLabel(fullName) {
 function remainingLabel(t) {
   if (t.done) return "concluída";
   if (t.late) return "atrasada";
+  if (t.noDueDate) return "sem prazo";
   return t.days + "d";
 }
 
@@ -273,6 +274,7 @@ function remainingLabel(t) {
 function urgencyStyle(t) {
   if (t.done) return { bg: "var(--border-soft)", color: "var(--muted)" };
   if (t.late) return { bg: lateColor + "22", color: lateColor };
+  if (t.noDueDate) return { bg: "var(--border-soft)", color: "var(--muted)" };
   if (t.days <= 3) return { bg: soonColor + "33", color: soonTextColor };
   if (t.days <= 7) return { bg: soonColor + "1A", color: soonTextColor };
   return { bg: "var(--border-soft)", color: "var(--muted)" };
@@ -925,6 +927,7 @@ async function loadDashboardData() {
       const remaining = daysRemaining(t.prazo);
       const done = t.data_conclusao != null;
       const isLate = !done && remaining !== null && remaining < 0;
+      const noDueDate = t.prazo == null;
       if (isLate) lateCount += 1;
 
       return {
@@ -934,6 +937,7 @@ async function loadDashboardData() {
         priority: t.prioridade,
         due: formatDatePtBr(t.prazo),
         days: remaining === null ? 999 : remaining,
+        noDueDate,
         done,
         late: isLate,
         tags: (t.tarefa_etiqueta || []).map(link => link.etiquetas?.nome).filter(Boolean),
