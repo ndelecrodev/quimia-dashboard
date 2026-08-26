@@ -99,6 +99,19 @@ tbody tr:hover { background: var(--teal-wash); }
   display: grid;
   grid-template-columns: 208px minmax(0, 1fr);
   gap: 18px;
+  align-items: start;
+}
+
+.layout > div {
+  min-height: 0;
+}
+
+.layout > div:first-child,
+.layout > div:last-child {
+  height: calc(100vh - 220px);
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .sidebar-btn {
@@ -154,6 +167,13 @@ tbody tr:hover { background: var(--teal-wash); }
      inside would stretch the whole single-column layout instead of staying
      scoped to its own overflow-x: auto wrapper. */
   .layout { grid-template-columns: minmax(0, 1fr); }
+  .layout > div:first-child,
+  .layout > div:last-child {
+    height: auto;
+    max-height: none;
+    overflow-y: visible;
+    padding-right: 0;
+  }
   body { padding: 20px 14px 48px; }
   .charts-grid-2 { grid-template-columns: minmax(0, 1fr); }
 }
