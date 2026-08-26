@@ -112,6 +112,32 @@ tbody tr:hover { background: var(--teal-wash); }
   max-height: calc(100vh - 220px);
   overflow-y: auto;
   padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted) var(--border-soft);
+}
+
+.layout > div:first-child::-webkit-scrollbar,
+.layout > div:last-child::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.layout > div:first-child::-webkit-scrollbar-track,
+.layout > div:last-child::-webkit-scrollbar-track {
+  background: var(--border-soft);
+  border-radius: 999px;
+}
+
+.layout > div:first-child::-webkit-scrollbar-thumb,
+.layout > div:last-child::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 999px;
+  border: 2px solid var(--border-soft);
+}
+
+.layout > div:first-child::-webkit-scrollbar-thumb:hover,
+.layout > div:last-child::-webkit-scrollbar-thumb:hover {
+  background: var(--teal);
 }
 
 .sidebar-btn {
