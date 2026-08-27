@@ -814,6 +814,47 @@ logoutBtn.onclick = async () => {
   await supabaseClient.auth.signOut();
 };
 
+/* ─────────────────────────────────────────────────────────────────
+   Download da planilha completa — proxied via Cloudflare Pages
+   Function (functions/api/download-planilha.js), que valida a sessão
+   contra o RLS do Supabase antes de buscar o arquivo no Backblaze B2.
+   ───────────────────────────────────────────────────────────────── */
+const downloadPlanilhaBtn = document.getElementById("download-planilha-btn");
+const downloadPlanilhaError = document.getElementById("download-planilha-error");
+const downloadPlanilhaBtnDefaultHTML = downloadPlanilhaBtn.innerHTML;
+
+downloadPlanilhaBtn.onclick = async () => {
+  downloadPlanilhaError.style.display = "none";
+  downloadPlanilhaBtn.disabled = true;
+  downloadPlanilhaBtn.textContent = "Baixando…";
+
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) throw new Error("Sessão expirada. Faça login novamente.");
+
+    const res = await fetch("/api/download-planilha", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (!res.ok) {
+      let message = "Não foi possível baixar a planilha.";
+      try {
+        const body = await res.json();
+        if (body?.error) message = body.error;
+      } catch { /* corpo não era JSON — mantém a mensagem padrão */ }
+      throw new Error(message);
+    }
+
+    downloadBlob(await res.blob(), "QuimiaGestao.xlsx");
+  } catch (err) {
+    downloadPlanilhaError.textContent = err.message || "Não foi possível baixar a planilha.";
+    downloadPlanilhaError.style.display = "block";
+  } finally {
+    downloadPlanilhaBtn.disabled = false;
+    downloadPlanilhaBtn.innerHTML = downloadPlanilhaBtnDefaultHTML;
+  }
+};
+
 supabaseClient.auth.onAuthStateChange((_event, session) => {
   if (session) {
     authScreen.style.display = "none";

@@ -70,9 +70,15 @@
     </div>
     <div style="display: flex; align-items: center; gap: 14px;">
       <p id="last-updated" class="num" style="font-size: 11.5px; color: var(--muted); margin: 0;">Carregando…</p>
+      <button id="download-planilha-btn" class="btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>
+        Baixar planilha completa
+      </button>
       <button id="logout-btn" class="btn-outline">Sair</button>
     </div>
   </div>
+
+  <p id="download-planilha-error" style="font-size: 11px; color: var(--late); margin: -10px 0 14px; display: none; text-align: right;"></p>
 
   <div class="card fade-in" style="padding: 16px 22px; margin-bottom: 18px;">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
