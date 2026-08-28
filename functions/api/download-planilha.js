@@ -68,7 +68,7 @@ export async function onRequestGet({ request, env }) {
   // demais chamadas da API nativa (b2_list_files_names etc).
   let fileRes;
   try {
-    const downloadUrl = `${authData.downloadUrl}/file/${encodeURIComponent(B2_BUCKET_NAME)}/${encodeURIComponent(EXCEL_CLOUD_NAME)}`;
+    const downloadUrl = `${authData.apiInfo.storageApi.downloadUrl}/file/${encodeURIComponent(B2_BUCKET_NAME)}/${encodeURIComponent(EXCEL_CLOUD_NAME)}`;
     fileRes = await fetch(downloadUrl, {
       headers: { Authorization: authData.authorizationToken },
     });
