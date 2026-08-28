@@ -9,6 +9,7 @@
    usuário autenticado. Nunca coloque aqui a chave service_role (essa sim
    é secreta e ignora o RLS). Ver README.md para detalhes.
    ───────────────────────────────────────────────────────────────── */
+   
 const SUPABASE_URL = "https://hpwuyriyoskvzmjnemaq.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwd3V5cml5b3Nrdnptam5lbWFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ1NTk1OTcsImV4cCI6MjEwMDEzNTU5N30.uiF0DkaNFM0ZMPG9POxW6yW3eBADhHCHTOTx6nB-wfo";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
