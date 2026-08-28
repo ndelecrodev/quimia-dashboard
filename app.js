@@ -823,8 +823,10 @@ logoutBtn.onclick = async () => {
 const downloadPlanilhaBtn = document.getElementById("download-planilha-btn");
 const downloadPlanilhaError = document.getElementById("download-planilha-error");
 const downloadPlanilhaBtnDefaultHTML = downloadPlanilhaBtn.innerHTML;
+let downloadPlanilhaErrorTimeout = null;
 
 downloadPlanilhaBtn.onclick = async () => {
+  clearTimeout(downloadPlanilhaErrorTimeout);
   downloadPlanilhaError.style.display = "none";
   downloadPlanilhaBtn.disabled = true;
   downloadPlanilhaBtn.textContent = "Baixando…";
@@ -850,6 +852,9 @@ downloadPlanilhaBtn.onclick = async () => {
   } catch (err) {
     downloadPlanilhaError.textContent = err.message || "Não foi possível baixar a planilha.";
     downloadPlanilhaError.style.display = "block";
+    downloadPlanilhaErrorTimeout = setTimeout(() => {
+      downloadPlanilhaError.style.display = "none";
+    }, 3500);
   } finally {
     downloadPlanilhaBtn.disabled = false;
     downloadPlanilhaBtn.innerHTML = downloadPlanilhaBtnDefaultHTML;
