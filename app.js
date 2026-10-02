@@ -15,34 +15,48 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let people = [];
-let project = { byArea: {}, byStatus: {}, hoursByArea: {} };
+let project = { byArea: {}, byStatus: {}, hoursByArea: {}, tasks: [] };
 
 // Mapa de cores de status. Direção semântica do dono do projeto: cinza para
 // os estados iniciais/não começados, âmbar para os "em andamento", verde/teal
 // para concluído, e vermelho SÓ para bloqueado/travado (não há status desse
 // tipo entre os valores conhecidos, então nenhum recebe vermelho aqui).
-// Cobre o vocabulário em inglês já existente + os valores em português citados
-// (A fazer, Fazendo, Concluído). Qualquer status fora do mapa cai no fallback
-// neutro (fallbackColor/fallbackTextColor), então um status novo não quebra —
-// fica cinza até o mapa ser atualizado.
+// As chaves ficam em minúsculas porque os valores reais vêm do ClickUp com
+// caixa variável ("in progress", "Closed"); toda leitura passa por
+// statusBg()/statusFg(), que normalizam o status antes da busca. Cobre o
+// vocabulário do ClickUp (backlog, to do, in progress, review, test, done,
+// closed) e os valores em português (a fazer, fazendo, concluído). Qualquer
+// status fora do mapa cai no fallback neutro (fallbackColor/fallbackTextColor),
+// então um status novo não quebra: fica cinza até o mapa ser atualizado.
 const statusColor = {
   // não começado → cinza
-  "Backlog": "#8B9C96", "To Do": "#8B9C96", "A fazer": "#8B9C96",
+  "backlog": "#8B9C96", "to do": "#8B9C96", "a fazer": "#8B9C96",
   // em andamento → âmbar
-  "In Progress": "#D6A73B", "Fazendo": "#D6A73B",
+  "in progress": "#D6A73B", "fazendo": "#D6A73B",
   // etapas intermediárias distintas (revisão / teste) → cores próprias da paleta
-  "Code Review": "#0E718F", "Testing": "#61B8D8",
+  "review": "#0E718F", "code review": "#0E718F", "test": "#61B8D8", "testing": "#61B8D8",
   // concluído → verde
-  "Done": "#2CD195", "Concluído": "#2CD195",
+  "done": "#2CD195", "closed": "#2CD195", "concluído": "#2CD195",
 };
 const statusTextColor = {
-  "Backlog": "#62766F", "To Do": "#62766F", "A fazer": "#62766F",
-  "In Progress": "#8A6A12", "Fazendo": "#8A6A12",
-  "Code Review": "#0E718F", "Testing": "#245F73",
-  "Done": "#158A64", "Concluído": "#158A64",
+  "backlog": "#62766F", "to do": "#62766F", "a fazer": "#62766F",
+  "in progress": "#8A6A12", "fazendo": "#8A6A12",
+  "review": "#0E718F", "code review": "#0E718F", "test": "#245F73", "testing": "#245F73",
+  "done": "#158A64", "closed": "#158A64", "concluído": "#158A64",
 };
 const fallbackColor = "#8B9C96";
 const fallbackTextColor = "#62766F";
+
+// Único ponto de leitura dos mapas de status (badges da tabela e tiles).
+function statusKey(status) {
+  return String(status ?? "").trim().toLowerCase();
+}
+function statusBg(status) {
+  return statusColor[statusKey(status)] || fallbackColor;
+}
+function statusFg(status) {
+  return statusTextColor[statusKey(status)] || fallbackTextColor;
+}
 const lateColor = "#C24545";
 // Âmbar para a escala de urgência dos prazos (0–3 e 4–7 dias). Mesmos tons
 // âmbar já presentes no tema (nada de hex novo) — a intensidade do fundo
@@ -190,10 +204,10 @@ function avatarImgFallback(img) {
   img.replaceWith(span);
 }
 
-function tilesHTML(data, bgMap, textMap) {
+function tilesHTML(data, bgFor, textFor) {
   return Object.entries(data).map(([label, count]) => {
-    const bg = bgMap[label] || fallbackColor;
-    const text = textMap[label] || fallbackTextColor;
+    const bg = bgFor(label);
+    const text = textFor(label);
     return `
     <div style="width: 76px; height: 76px; border-radius: 10px; background: ${bg}1F; border: 1px solid ${bg}55; padding: 7px 9px; display: flex; flex-direction: column; justify-content: space-between;">
       <span class="num" style="font-size: 14px; color: ${text}; align-self: flex-end; font-weight: 600;">${count}</span>
@@ -282,8 +296,8 @@ function urgencyStyle(t) {
 }
 
 function taskRow(t, showAssignee) {
-  const statusBg = statusColor[t.status] || fallbackColor;
-  const statusText = statusTextColor[t.status] || fallbackTextColor;
+  const badgeBg = statusBg(t.status);
+  const badgeText = statusFg(t.status);
   const priBg = priorityColor[t.priority] || fallbackColor;
   const priText = priorityTextColor[t.priority] || fallbackTextColor;
   const u = urgencyStyle(t);
@@ -292,7 +306,7 @@ function taskRow(t, showAssignee) {
       <td class="num" style="color: var(--muted); font-size: 11.5px;">${escapeHtml(t.id)}</td>
       <td style="font-weight: 500;">${escapeHtml(t.title)}</td>
       ${showAssignee ? `<td style="color: var(--muted);">${escapeHtml(t.assignee)}</td>` : ""}
-      <td><span class="badge" style="background: ${statusBg}22; color: ${statusText};">${escapeHtml(t.status)}</span></td>
+      <td><span class="badge" style="background: ${badgeBg}22; color: ${badgeText};">${escapeHtml(t.status)}</span></td>
       <td><span class="badge" style="background: ${priBg}1A; color: ${priText};">${escapeHtml(t.priority)}</span></td>
       <td class="num" style="color: var(--muted);">${t.due}</td>
       <td><span class="badge num" style="background: ${u.bg}; color: ${u.color};">${remainingLabel(t)}</span></td>
@@ -320,7 +334,7 @@ function csvCell(value) {
 function currentExportData() {
   const isProject = entity.type === "project";
   const tasks = isProject
-    ? people.flatMap(p => p.tasks.map(t => ({ ...t, assignee: p.name })))
+    ? project.tasks
     : (people[entity.index] ? people[entity.index].tasks : []);
 
   const headers = ["ID", "Tarefa", ...(isProject ? ["Responsável"] : []), "Status", "Prioridade", "Prazo", "Restante", "Etiquetas"];
@@ -368,7 +382,7 @@ function exportDetailsXLSX() {
 function renderDetails() {
   const isProject = entity.type === "project";
   const tasks = isProject
-    ? people.flatMap(p => p.tasks.map(t => ({ ...t, assignee: p.name })))
+    ? project.tasks
     : people[entity.index].tasks;
   const rows = tasks.map(t => taskRow(t, isProject)).join("");
 
@@ -422,7 +436,7 @@ function renderPersonOverview(person) {
 
     <div class="card fade-in" style="padding: 15px 17px; margin-bottom: 14px;">
       <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Status das tarefas</p>
-      <div style="display: flex; gap: 9px; flex-wrap: wrap;">${Object.keys(person.status).length ? tilesHTML(person.status, statusColor, statusTextColor) : chartEmpty("Nenhuma tarefa registrada.")}</div>
+      <div style="display: flex; gap: 9px; flex-wrap: wrap;">${Object.keys(person.status).length ? tilesHTML(person.status, statusBg, statusFg) : chartEmpty("Nenhuma tarefa registrada.")}</div>
     </div>
 
     <div class="charts-grid-2">
@@ -500,7 +514,7 @@ function renderProjectOverview() {
       </div>
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Status geral</p>
-        <div style="display: flex; gap: 9px; flex-wrap: wrap;">${Object.keys(project.byStatus).length ? tilesHTML(project.byStatus, statusColor, statusTextColor) : chartEmpty("Nenhuma tarefa registrada.")}</div>
+        <div style="display: flex; gap: 9px; flex-wrap: wrap;">${Object.keys(project.byStatus).length ? tilesHTML(project.byStatus, statusBg, statusFg) : chartEmpty("Nenhuma tarefa registrada.")}</div>
       </div>
       <div class="card fade-in" style="padding: 15px 17px;">
         <p style="font-size: 12.5px; font-weight: 600; margin: 0 0 10px;">Horas por funcionário</p>
@@ -513,7 +527,7 @@ function renderProjectOverview() {
         <button onclick="view='details'; renderAll();" style="border: none; background: transparent; color: var(--teal); font-size: 11.5px; cursor: pointer; padding: 0; font-weight: 500;">Ver detalhamento completo →</button>
       </div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        ${people.flatMap(p => p.tasks.map(t => ({ ...t, assignee: p.name }))).length ? people.flatMap(p => p.tasks.map(t => ({ ...t, assignee: p.name }))).sort((a, b) => a.days - b.days).slice(0, 3).map(t => {
+        ${project.tasks.length ? [...project.tasks].sort((a, b) => a.days - b.days).slice(0, 3).map(t => {
           const u = urgencyStyle(t);
           return `
           <div style="flex: 1; min-width: 160px; border: 1px solid var(--border); border-radius: 11px; padding: 11px 13px;">
@@ -897,6 +911,34 @@ function daysRemaining(isoDate) {
   return Math.round((due - today) / 86400000);
 }
 
+// Responsáveis de uma tarefa, a partir dos vínculos em tarefa_responsavel.
+// Sem nenhum vínculo (pipeline ainda não preencheu a tabela), cai em
+// responsavel_id. O primeiro responsável (responsavel_id) vem na frente.
+function taskAssigneeIds(t) {
+  const linked = [...new Set((t.tarefa_responsavel || []).map(link => link.funcionario_id))];
+  if (linked.length === 0) return t.responsavel_id != null ? [t.responsavel_id] : [];
+  return linked.sort((a, b) => (b === t.responsavel_id) - (a === t.responsavel_id));
+}
+
+// Tarefa no formato das views (tabela, cards e exportação). Compartilhada
+// pela lista de cada pessoa e pela lista do projeto.
+function taskView(t) {
+  const remaining = daysRemaining(t.prazo);
+  const done = t.data_conclusao != null;
+  return {
+    id: t.task_id,
+    title: t.titulo,
+    status: t.status,
+    priority: t.prioridade,
+    due: formatDatePtBr(t.prazo),
+    days: remaining === null ? 999 : remaining,
+    noDueDate: t.prazo == null,
+    done,
+    late: !done && remaining !== null && remaining < 0,
+    tags: (t.tarefa_etiqueta || []).map(link => link.etiquetas?.nome).filter(Boolean),
+  };
+}
+
 function describePostgrestError(label, error) {
   const parts = [`${label}: ${error.message || "erro desconhecido"}`];
   if (error.details) parts.push(`Detalhes: ${error.details}`);
@@ -931,7 +973,8 @@ async function loadDashboardData() {
     supabaseClient.from("funcionarios").select("id, canonical_name, clickup_email, clockify_email, photo_url"),
     supabaseClient.from("tarefas").select(`
       task_id, titulo, responsavel_id, area, prioridade, status, data_criacao, prazo, data_conclusao, tipo, criador, data_atualizacao,
-      tarefa_etiqueta ( etiquetas ( nome ) )
+      tarefa_etiqueta ( etiquetas ( nome ) ),
+      tarefa_responsavel ( funcionario_id )
     `).is("arquivada_em", null),
     supabaseClient.from("horas").select("entry_id, funcionario_id, data, horas"),
     supabaseClient.from("funcionario_area").select("funcionario_id, areas ( nome )"),
@@ -958,9 +1001,11 @@ async function loadDashboardData() {
   const horas = horasRes.data || [];
   const funcionarioAreas = funcionarioAreaRes.data || [];
 
+  const nameById = new Map(funcionarios.map(f => [f.id, f.canonical_name]));
+
   // Monta a lista de pessoas a partir de funcionarios, e agrega tarefas/horas por id.
   people = funcionarios.map((f, i) => {
-    const myTasks = tarefas.filter(t => t.responsavel_id === f.id);
+    const myTasks = tarefas.filter(t => taskAssigneeIds(t).includes(f.id));
     const myHours = horas.filter(h => h.funcionario_id === f.id);
 
     const statusTally = {};
@@ -971,24 +1016,9 @@ async function loadDashboardData() {
       statusTally[t.status] = (statusTally[t.status] || 0) + 1;
       priorityTally[t.prioridade] = (priorityTally[t.prioridade] || 0) + 1;
 
-      const remaining = daysRemaining(t.prazo);
-      const done = t.data_conclusao != null;
-      const isLate = !done && remaining !== null && remaining < 0;
-      const noDueDate = t.prazo == null;
-      if (isLate) lateCount += 1;
-
-      return {
-        id: t.task_id,
-        title: t.titulo,
-        status: t.status,
-        priority: t.prioridade,
-        due: formatDatePtBr(t.prazo),
-        days: remaining === null ? 999 : remaining,
-        noDueDate,
-        done,
-        late: isLate,
-        tags: (t.tarefa_etiqueta || []).map(link => link.etiquetas?.nome).filter(Boolean),
-      };
+      const task = taskView(t);
+      if (task.late) lateCount += 1;
+      return task;
     });
 
     // Área da pessoa: vem da tabela de vínculo funcionario_area (com o nome
@@ -1028,6 +1058,13 @@ async function loadDashboardData() {
     };
   });
 
+  // Lista de tarefas do projeto: cada tarefa exatamente uma vez, direto de
+  // tarefas. Fonte única da tabela de detalhamento e das exportações.
+  const projectTasks = tarefas.map(t => {
+    const names = taskAssigneeIds(t).map(id => nameById.get(id)).filter(Boolean);
+    return { ...taskView(t), assignee: names.join(", ") || "Não mapeado" };
+  });
+
   // Agregados do projeto inteiro.
   const byArea = {};
   const byStatus = {};
@@ -1042,7 +1079,7 @@ async function loadDashboardData() {
   const hoursByPerson = {};
   people.forEach(p => { hoursByPerson[p.name] = p.kpis.hours; });
 
-  project = { byArea, byStatus, hoursByArea: hoursByPerson };
+  project = { byArea, byStatus, hoursByArea: hoursByPerson, tasks: projectTasks };
 
   // Sem erro, porém sem nenhum colaborador: estado vazio calmo (não alarmante).
   if (funcionarios.length === 0) {

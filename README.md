@@ -28,8 +28,16 @@ o Supabase por dois canais do SDK `@supabase/supabase-js`:
 
 - **Auth**: login e cadastro por e-mail/senha.
 - **PostgREST**: consultas às tabelas `funcionarios`, `tarefas`, `horas`,
-  `etiquetas`, `tarefa_etiqueta`, `funcionario_area` e `areas`, feitas com
-  a sessão do usuário logado.
+  `etiquetas`, `tarefa_etiqueta`, `tarefa_responsavel`, `funcionario_area`
+  e `areas`, feitas com a sessão do usuário logado.
+
+Os responsáveis de cada tarefa vêm de `tarefa_responsavel`, uma linha por
+responsável cadastrado (ver `sql/004_tarefa_responsavel.sql`). Uma tarefa com
+mais de um responsável aparece na lista de cada um deles, e na tabela do
+projeto aparece uma vez só, com todos os nomes na coluna "Responsável".
+Quando a tarefa ainda não tem nenhum vínculo, o dashboard usa
+`tarefas.responsavel_id` (o primeiro responsável). Se nenhum dos dois aponta
+para um colaborador cadastrado, a coluna mostra "Não mapeado".
 
 A área de cada pessoa vem do vínculo em `funcionario_area` (com o nome em
 `areas`), já não é mais derivada das áreas das tarefas atribuídas a ela.
@@ -49,12 +57,13 @@ site.** A `SUPABASE_ANON_KEY` que aparece em `app.js` é pública por design:
 no código-fonte, e não concede acesso a nada por si só. Cada política de
 RLS só libera as linhas do usuário autenticado cujo e-mail conste em
 `funcionarios.clickup_email`/`clockify_email`; uma sessão anônima ou de
-alguém não cadastrado enxerga zero linhas em qualquer tabela. As duas
+alguém não cadastrado enxerga zero linhas em qualquer tabela. As
 migrações versionadas em `sql/` cobrem as funções auxiliares desse
 controle. O restante das políticas de RLS, incluindo
 `is_registered_employee()`, usada dentro delas para evitar recursão, foi
 aplicado direto no SQL editor do Supabase e ainda não está versionado neste
-repositório.
+repositório. A exceção é a política de `tarefa_responsavel`, versionada em
+`sql/004_tarefa_responsavel.sql`.
 
 ## Rodando localmente
 
@@ -131,6 +140,13 @@ Aplicar em ordem no **SQL editor** do Supabase:
    à Quimia).
 2. `sql/002_log_unauthorized_signups.sql`: log server-side das tentativas
    de cadastro não autorizadas (depende da função acima).
+3. `sql/003_rename_jira_email_to_clickup_email.sql`: recria as funções de
+   RLS após o rename `jira_email` → `clickup_email` (rodar depois do
+   `ALTER TABLE`, ver cabeçalho do arquivo).
+4. `sql/004_tarefa_responsavel.sql`: tabela N:N `tarefa_responsavel`
+   (tarefa × colaborador), com RLS e política de SELECT via
+   `is_registered_employee()`, igual a `tarefa_etiqueta`. Já foi aplicada
+   manualmente; o arquivo só versiona o que está no banco.
 
 ## Tentativas de cadastro não autorizadas
 
