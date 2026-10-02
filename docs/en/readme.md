@@ -28,8 +28,16 @@ Supabase directly through two channels of the `@supabase/supabase-js` SDK:
 
 - **Auth**: email/password login and signup.
 - **PostgREST**: queries against the `funcionarios`, `tarefas`, `horas`,
-  `etiquetas`, `tarefa_etiqueta`, `funcionario_area`, and `areas` tables,
-  run with the logged-in user's session.
+  `etiquetas`, `tarefa_etiqueta`, `tarefa_responsavel`, `funcionario_area`,
+  and `areas` tables, run with the logged-in user's session.
+
+Task assignees come from `tarefa_responsavel`, one row per registered
+assignee (see `sql/004_tarefa_responsavel.sql`). A task with more than one
+assignee shows up in each of their lists, and appears once in the project
+table with every name in the "Responsável" column. When a task has no link
+rows yet, the dashboard falls back to `tarefas.responsavel_id` (the first
+assignee). If neither points to a registered employee, the column shows
+"Não mapeado".
 
 A person's area comes from the link in `funcionario_area` (with the name
 in `areas`), it is no longer derived from the areas of the tasks assigned
@@ -51,10 +59,12 @@ source code in plain sight, and it grants no access on its own. Each RLS
 policy only releases rows for the authenticated user whose email matches
 `funcionarios.clickup_email`/`clockify_email`; an anonymous session, or one
 belonging to someone not on that list, sees zero rows in every table. The
-two migrations checked into `sql/` cover the helper functions behind that
+migrations checked into `sql/` cover the helper functions behind that
 setup. The rest of the RLS policies, including `is_registered_employee()`,
 used inside them to avoid recursion, were applied directly through the
-Supabase SQL editor and aren't checked into this repository yet.
+Supabase SQL editor and aren't checked into this repository yet. The
+exception is the `tarefa_responsavel` policy, versioned in
+`sql/004_tarefa_responsavel.sql`.
 
 ## Local development
 
@@ -133,6 +143,13 @@ Apply in order in the Supabase **SQL editor**:
    Quimia.
 2. `sql/002_log_unauthorized_signups.sql`: server-side logging of
    unauthorized signup attempts (depends on the function above).
+3. `sql/003_rename_jira_email_to_clickup_email.sql`: recreates the RLS
+   functions after the `jira_email` → `clickup_email` rename (run it after
+   the `ALTER TABLE`; see the file header).
+4. `sql/004_tarefa_responsavel.sql`: the `tarefa_responsavel` N:N table
+   (task × employee), with RLS and a SELECT policy through
+   `is_registered_employee()`, same as `tarefa_etiqueta`. It was already
+   applied manually; the file versions what is in the database.
 
 ## Unauthorized signup attempts
 
