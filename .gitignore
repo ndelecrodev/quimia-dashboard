@@ -9,6 +9,10 @@ Thumbs.db
 # Dependências (caso um build tool seja adicionado no futuro)
 node_modules/
 
+.venv
+venv
+venv/
+
 # Observação sobre segredos:
 # Este é um site estático servido pelo navegador. A única credencial no
 # código é a SUPABASE_ANON_KEY, que é pública por design (protegida por RLS
