@@ -39,6 +39,12 @@ Quando a tarefa ainda não tem nenhum vínculo, o dashboard usa
 `tarefas.responsavel_id` (o primeiro responsável). Se nenhum dos dois aponta
 para um colaborador cadastrado, a coluna mostra "Não mapeado".
 
+A coluna `tarefas.tarefa_pai_id` identifica a tarefa pai imediata. Nas tabelas,
+as subtarefas aparecem recolhidas abaixo da tarefa pai quando ela está na mesma
+lista. Uma subtarefa sem a tarefa pai na lista continua visível no nível
+principal com a marca "subtarefa". As exportações permanecem planas e incluem
+a coluna "Tarefa pai".
+
 A área de cada pessoa vem do vínculo em `funcionario_area` (com o nome em
 `areas`), já não é mais derivada das áreas das tarefas atribuídas a ela.
 
@@ -99,8 +105,9 @@ build, porque não há build.
 - **Visão do projeto**: os mesmos indicadores agregados para o time
   inteiro, tarefas por área, status geral, horas por funcionário.
 - **Detalhamento de tarefas**: tabela completa (por pessoa ou do projeto
-  inteiro), com exportação para CSV (separador `;` e BOM UTF-8, para abrir
-  certo no Excel em português) e para `.xlsx` real via SheetJS.
+  inteiro), com subtarefas recolhíveis, exportação plana para CSV (separador
+  `;` e BOM UTF-8, para abrir certo no Excel em português) e para `.xlsx` real
+  via SheetJS.
 - **Login e cadastro**: e-mail/senha via Supabase Auth. No cadastro, se o
   e-mail digitado não constar em `funcionarios`, a tela mostra um aviso não
   bloqueante (a pessoa pode seguir mesmo assim); o aviso é só um heads-up
@@ -147,6 +154,9 @@ Aplicar em ordem no **SQL editor** do Supabase:
    (tarefa × colaborador), com RLS e política de SELECT via
    `is_registered_employee()`, igual a `tarefa_etiqueta`. Já foi aplicada
    manualmente; o arquivo só versiona o que está no banco.
+5. `sql/005_tarefa_pai_id.sql`: adiciona `tarefas.tarefa_pai_id`, que guarda o
+   id da tarefa pai imediata. Já foi aplicada manualmente; o arquivo só
+   versiona o que está no banco.
 
 ## Tentativas de cadastro não autorizadas
 
