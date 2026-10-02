@@ -317,17 +317,21 @@ function taskRow(t, showAssignee) {
   const priText = priorityFg(t.task.priority);
   const u = urgencyStyle(t.task);
   const level = t.level || 0;
-  const indent = level * 22;
+  // O recuo e o espaço da seta ficam num flex dentro da célula (ver
+  // .task-title em style.css): assim a segunda linha de um título longo
+  // começa alinhada ao texto, e não embaixo da seta.
   const toggle = t.hasChildren
-    ? `<button type="button" class="task-toggle" aria-expanded="false" aria-label="Expandir subtarefas de ${escapeHtml(t.task.title)}" onclick="toggleTaskChildren(this)">&#9654;</button>`
+    ? `<button type="button" class="task-toggle" aria-expanded="false" aria-label="Expandir subtarefas de ${escapeHtml(t.task.title)}" onclick="toggleTaskChildren(this)"><span aria-hidden="true">&#9654;</span></button>`
     : `<span class="task-toggle-spacer" aria-hidden="true"></span>`;
   const orphanMarker = t.task.isSubtask && level === 0
     ? `<span class="subtask-marker">subtarefa</span>`
     : "";
   return `
-    <tr data-task-id="${escapeHtml(t.task.id)}" data-parent-id="${escapeHtml(t.task.parentId)}" data-level="${level}"${level > 0 ? ' hidden' : ""}>
+    <tr data-task-id="${escapeHtml(t.task.id)}" data-parent-id="${escapeHtml(t.task.parentId)}" data-level="${level}" data-title="${escapeHtml(t.task.title)}"${level > 0 ? ' hidden' : ""}>
       <td class="num" style="color: var(--muted); font-size: 11.5px;">${escapeHtml(t.task.id)}</td>
-      <td style="font-weight: 500; padding-left: ${12 + indent}px;">${toggle}${escapeHtml(t.task.title)} ${orphanMarker}</td>
+      <td class="task-title-cell">
+        <div class="task-title" style="--level: ${level};">${toggle}<span class="task-title-text">${escapeHtml(t.task.title)}${orphanMarker}</span></div>
+      </td>
       ${showAssignee ? `<td style="color: var(--muted);">${escapeHtml(t.task.assignee)}</td>` : ""}
       <td><span class="badge" style="background: ${badgeBg}22; color: ${badgeText};">${escapeHtml(t.task.status)}</span></td>
       <td><span class="badge" style="background: ${priBg}1A; color: ${priText};">${escapeHtml(t.task.priority)}</span></td>
@@ -344,19 +348,21 @@ function toggleTaskChildren(button) {
   const childRows = Array.from(table.querySelectorAll("tbody tr")).filter(candidate => candidate.dataset.parentId === taskId);
   const expanded = button.getAttribute("aria-expanded") === "true";
   button.setAttribute("aria-expanded", String(!expanded));
-  button.innerHTML = expanded ? "&#9654;" : "&#9660;";
-  button.setAttribute("aria-label", `${expanded ? "Expandir" : "Recolher"} subtarefas de ${row.querySelector("td:nth-child(2)").textContent.trim()}`);
+  button.setAttribute("aria-label", `${expanded ? "Expandir" : "Recolher"} subtarefas de ${row.dataset.title}`);
   childRows.forEach(child => {
     child.hidden = expanded;
     if (expanded) {
       const nestedButton = child.querySelector(".task-toggle");
-      if (nestedButton) {
-        nestedButton.setAttribute("aria-expanded", "false");
-        nestedButton.innerHTML = "&#9654;";
-      }
+      if (nestedButton) resetToggle(nestedButton);
       toggleDescendants(child, table, true);
     }
   });
+}
+
+// Volta uma seta aninhada ao estado recolhido quando o pai dela é fechado.
+function resetToggle(button) {
+  button.setAttribute("aria-expanded", "false");
+  button.setAttribute("aria-label", `Expandir subtarefas de ${button.closest("tr").dataset.title}`);
 }
 
 function toggleDescendants(row, table, hidden) {
@@ -364,10 +370,7 @@ function toggleDescendants(row, table, hidden) {
   Array.from(table.querySelectorAll("tbody tr")).filter(candidate => candidate.dataset.parentId === taskId).forEach(child => {
     child.hidden = hidden;
     const nestedButton = child.querySelector(".task-toggle");
-    if (nestedButton && hidden) {
-      nestedButton.setAttribute("aria-expanded", "false");
-      nestedButton.innerHTML = "&#9654;";
-    }
+    if (nestedButton && hidden) resetToggle(nestedButton);
     toggleDescendants(child, table, hidden);
   });
 }
@@ -460,7 +463,7 @@ function renderDetails() {
       <div style="overflow-x: auto;">
         <table>
           <thead><tr>
-            <th>ID</th><th>Tarefa</th>${isProject ? "<th>Responsável</th>" : ""}<th>Status</th><th>Prioridade</th><th>Prazo</th><th>Restante</th><th>Etiquetas</th><th>Tarefa pai</th>
+            <th>ID</th><th>Tarefa</th>${isProject ? "<th>Responsável</th>" : ""}<th>Status</th><th>Prioridade</th><th>Prazo</th><th>Restante</th><th>Etiquetas</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>

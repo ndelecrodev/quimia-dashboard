@@ -82,26 +82,53 @@ td { padding: 11px 12px; border-bottom: 1px solid var(--border-soft); vertical-a
 tbody tr { transition: background-color 120ms ease; }
 tbody tr:hover { background: var(--teal-wash); }
 
+/* Célula do título: seta (ou espaço reservado) + texto num flex. O recuo
+   por nível vem de --level (definido inline em taskRow) vezes --indent-step,
+   e o texto tem min-width: 0 para quebrar dentro da própria coluna (só parte
+   uma palavra ao meio se ela não couber sozinha na linha), então a
+   segunda linha de um título longo começa alinhada ao texto, nunca embaixo
+   da seta. */
+.task-title-cell { min-width: 220px; }
+.task-title {
+  --indent-step: 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding-left: calc(var(--level, 0) * var(--indent-step));
+}
+.task-title-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  line-height: 1.45;
+}
+/* 24px: alvo de toque mínimo recomendado (WCAG 2.2, 2.5.8). A margem
+   negativa centraliza a seta na primeira linha do texto sem aumentar a
+   altura da linha da tabela. */
 .task-toggle,
 .task-toggle-spacer {
-  display: inline-flex;
-  width: 18px;
-  height: 18px;
-  align-items: center;
-  justify-content: center;
-  margin-right: 4px;
-  vertical-align: -3px;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin: -3px 0 -3px -4px;
 }
 .task-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   padding: 0;
+  border-radius: 6px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   font-size: 10px;
 }
+.task-toggle span { display: inline-block; transition: transform 150ms ease; }
+.task-toggle[aria-expanded="true"] span { transform: rotate(90deg); }
 .task-toggle:hover,
-.task-toggle:focus-visible { color: var(--teal); }
+.task-toggle:focus-visible { color: var(--teal); background: var(--teal-wash); }
+.task-toggle:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
 .subtask-marker {
   display: inline-block;
   margin-left: 5px;
@@ -235,6 +262,8 @@ tbody tr:hover { background: var(--teal-wash); }
 }
 
 @media (max-width: 480px) {
+  .task-title-cell { min-width: 180px; }
+  .task-title { --indent-step: 14px; }
   .chart-box { height: 116px; }
   .chart-box-sm { height: 92px; }
   .chart-donut-box { width: 84px; height: 84px; }
