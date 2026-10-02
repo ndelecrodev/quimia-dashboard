@@ -82,6 +82,36 @@ td { padding: 11px 12px; border-bottom: 1px solid var(--border-soft); vertical-a
 tbody tr { transition: background-color 120ms ease; }
 tbody tr:hover { background: var(--teal-wash); }
 
+.task-toggle,
+.task-toggle-spacer {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  vertical-align: -3px;
+}
+.task-toggle {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+}
+.task-toggle:hover,
+.task-toggle:focus-visible { color: var(--teal); }
+.subtask-marker {
+  display: inline-block;
+  margin-left: 5px;
+  color: var(--muted-soft);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .badge {
   font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600;
   padding: 3px 9px; border-radius: 20px; letter-spacing: 0.01em; white-space: nowrap;

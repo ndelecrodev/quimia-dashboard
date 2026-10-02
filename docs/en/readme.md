@@ -39,6 +39,11 @@ rows yet, the dashboard falls back to `tarefas.responsavel_id` (the first
 assignee). If neither points to a registered employee, the column shows
 "Não mapeado".
 
+A task's immediate parent is stored in `tarefas.tarefa_pai_id`. In the tables,
+subtasks are collapsed below their parent when that parent is in the same list.
+A subtask whose parent is absent remains visible at the top level with the
+"subtarefa" marker. Exports stay flat and include the "Tarefa pai" column.
+
 A person's area comes from the link in `funcionario_area` (with the name
 in `areas`), it is no longer derived from the areas of the tasks assigned
 to them.
@@ -101,9 +106,9 @@ there's no build.
 - **Project view**: the same indicators aggregated across the whole team,
   tasks by area, overall status, hours by team member.
 - **Task detail table**: the full table (per person or for the whole
-  project), exportable to CSV (`;` separator with a UTF-8 BOM, so it opens
-  correctly in Brazilian-Portuguese Excel) and to a real `.xlsx` via
-  SheetJS.
+  project), with collapsible subtasks, flat exports to CSV (`;` separator with
+  a UTF-8 BOM, so it opens correctly in Brazilian-Portuguese Excel) and to a
+  real `.xlsx` via SheetJS.
 - **Login and signup**: email/password through Supabase Auth. On signup,
   if the entered email isn't in `funcionarios`, the screen shows a
   non-blocking warning (the person can still proceed); it's a client-side
@@ -150,6 +155,9 @@ Apply in order in the Supabase **SQL editor**:
    (task × employee), with RLS and a SELECT policy through
    `is_registered_employee()`, same as `tarefa_etiqueta`. It was already
    applied manually; the file versions what is in the database.
+5. `sql/005_tarefa_pai_id.sql`: adds `tarefas.tarefa_pai_id`, the immediate
+   parent task id. It was already applied manually; the file versions what is
+   in the database.
 
 ## Unauthorized signup attempts
 

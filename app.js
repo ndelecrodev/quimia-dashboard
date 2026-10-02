@@ -72,6 +72,21 @@ const priorityTextColor = { "Highest": lateColor, "High": lateColor, "Medium": s
 // adjacente em renderPersonOverview (os badges da tabela usam priorityColor).
 const priorityChartColor = { "Highest": "#0E718F", "High": "#1B7A7A", "Medium": "#36C6C6", "Low": "#61B8D8", "Lowest": "#58E4A9" };
 const priorityChartTextColor = { "Highest": "#0E718F", "High": "#1B7A7A", "Medium": "#186666", "Low": "#22787F", "Lowest": "#22787F" };
+function priorityKey(priority) {
+  return String(priority ?? "").trim().toLowerCase();
+}
+function priorityBg(priority) {
+  const key = priorityKey(priority);
+  return priorityColor[Object.keys(priorityColor).find(k => k.toLowerCase() === key)] || fallbackColor;
+}
+function priorityFg(priority) {
+  const key = priorityKey(priority);
+  return priorityTextColor[Object.keys(priorityTextColor).find(k => k.toLowerCase() === key)] || fallbackTextColor;
+}
+function priorityChartBg(priority) {
+  const key = priorityKey(priority);
+  return priorityChartColor[Object.keys(priorityChartColor).find(k => k.toLowerCase() === key)] || fallbackColor;
+}
 const areaColor = "#1F6E74";
 const hoursAreaColor = "#3AA0C7";
 
@@ -296,22 +311,65 @@ function urgencyStyle(t) {
 }
 
 function taskRow(t, showAssignee) {
-  const badgeBg = statusBg(t.status);
-  const badgeText = statusFg(t.status);
-  const priBg = priorityColor[t.priority] || fallbackColor;
-  const priText = priorityTextColor[t.priority] || fallbackTextColor;
-  const u = urgencyStyle(t);
+  const badgeBg = statusBg(t.task.status);
+  const badgeText = statusFg(t.task.status);
+  const priBg = priorityBg(t.task.priority);
+  const priText = priorityFg(t.task.priority);
+  const u = urgencyStyle(t.task);
+  const level = t.level || 0;
+  const indent = level * 22;
+  const toggle = t.hasChildren
+    ? `<button type="button" class="task-toggle" aria-expanded="false" aria-label="Expandir subtarefas de ${escapeHtml(t.task.title)}" onclick="toggleTaskChildren(this)">&#9654;</button>`
+    : `<span class="task-toggle-spacer" aria-hidden="true"></span>`;
+  const orphanMarker = t.task.isSubtask && level === 0
+    ? `<span class="subtask-marker">subtarefa</span>`
+    : "";
   return `
-    <tr>
-      <td class="num" style="color: var(--muted); font-size: 11.5px;">${escapeHtml(t.id)}</td>
-      <td style="font-weight: 500;">${escapeHtml(t.title)}</td>
-      ${showAssignee ? `<td style="color: var(--muted);">${escapeHtml(t.assignee)}</td>` : ""}
-      <td><span class="badge" style="background: ${badgeBg}22; color: ${badgeText};">${escapeHtml(t.status)}</span></td>
-      <td><span class="badge" style="background: ${priBg}1A; color: ${priText};">${escapeHtml(t.priority)}</span></td>
-      <td class="num" style="color: var(--muted);">${t.due}</td>
-      <td><span class="badge num" style="background: ${u.bg}; color: ${u.color};">${remainingLabel(t)}</span></td>
-      <td style="color: var(--muted-soft); font-size: 11px;">${t.tags.map(escapeHtml).join(", ") || "—"}</td>
+    <tr data-task-id="${escapeHtml(t.task.id)}" data-parent-id="${escapeHtml(t.task.parentId)}" data-level="${level}"${level > 0 ? ' hidden' : ""}>
+      <td class="num" style="color: var(--muted); font-size: 11.5px;">${escapeHtml(t.task.id)}</td>
+      <td style="font-weight: 500; padding-left: ${12 + indent}px;">${toggle}${escapeHtml(t.task.title)} ${orphanMarker}</td>
+      ${showAssignee ? `<td style="color: var(--muted);">${escapeHtml(t.task.assignee)}</td>` : ""}
+      <td><span class="badge" style="background: ${badgeBg}22; color: ${badgeText};">${escapeHtml(t.task.status)}</span></td>
+      <td><span class="badge" style="background: ${priBg}1A; color: ${priText};">${escapeHtml(t.task.priority)}</span></td>
+      <td class="num" style="color: var(--muted);">${t.task.due}</td>
+      <td><span class="badge num" style="background: ${u.bg}; color: ${u.color};">${remainingLabel(t.task)}</span></td>
+      <td style="color: var(--muted-soft); font-size: 11px;">${t.task.tags.map(escapeHtml).join(", ") || "—"}</td>
     </tr>`;
+}
+
+function toggleTaskChildren(button) {
+  const row = button.closest("tr");
+  const table = row.closest("table");
+  const taskId = row.dataset.taskId;
+  const childRows = Array.from(table.querySelectorAll("tbody tr")).filter(candidate => candidate.dataset.parentId === taskId);
+  const expanded = button.getAttribute("aria-expanded") === "true";
+  button.setAttribute("aria-expanded", String(!expanded));
+  button.innerHTML = expanded ? "&#9654;" : "&#9660;";
+  button.setAttribute("aria-label", `${expanded ? "Expandir" : "Recolher"} subtarefas de ${row.querySelector("td:nth-child(2)").textContent.trim()}`);
+  childRows.forEach(child => {
+    child.hidden = expanded;
+    if (expanded) {
+      const nestedButton = child.querySelector(".task-toggle");
+      if (nestedButton) {
+        nestedButton.setAttribute("aria-expanded", "false");
+        nestedButton.innerHTML = "&#9654;";
+      }
+      toggleDescendants(child, table, true);
+    }
+  });
+}
+
+function toggleDescendants(row, table, hidden) {
+  const taskId = row.dataset.taskId;
+  Array.from(table.querySelectorAll("tbody tr")).filter(candidate => candidate.dataset.parentId === taskId).forEach(child => {
+    child.hidden = hidden;
+    const nestedButton = child.querySelector(".task-toggle");
+    if (nestedButton && hidden) {
+      nestedButton.setAttribute("aria-expanded", "false");
+      nestedButton.innerHTML = "&#9654;";
+    }
+    toggleDescendants(child, table, hidden);
+  });
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -337,10 +395,10 @@ function currentExportData() {
     ? project.tasks
     : (people[entity.index] ? people[entity.index].tasks : []);
 
-  const headers = ["ID", "Tarefa", ...(isProject ? ["Responsável"] : []), "Status", "Prioridade", "Prazo", "Restante", "Etiquetas"];
   const rows = tasks.map(t => [
-    t.id, t.title, ...(isProject ? [t.assignee] : []), t.status, t.priority, t.due, remainingLabel(t), t.tags.join(", "),
+    t.id, t.title, ...(isProject ? [t.assignee] : []), t.status, t.priority, t.due, remainingLabel(t), t.tags.join(", "), t.parentId,
   ]);
+  const headers = ["ID", "Tarefa", ...(isProject ? ["Responsável"] : []), "Status", "Prioridade", "Prazo", "Restante", "Etiquetas", "Tarefa pai"];
   const scope = isProject ? "projeto" : (people[entity.index]?.name || "colaborador").replace(/\s+/g, "-").toLowerCase();
   return { headers, rows, scope, empty: tasks.length === 0 };
 }
@@ -384,7 +442,7 @@ function renderDetails() {
   const tasks = isProject
     ? project.tasks
     : people[entity.index].tasks;
-  const rows = tasks.map(t => taskRow(t, isProject)).join("");
+  const rows = orderedTaskRows(tasks).map(row => taskRow(row, isProject)).join("");
 
   contentEl.innerHTML = `
     <div class="card fade-in" style="padding: 6px 8px;">
@@ -402,7 +460,7 @@ function renderDetails() {
       <div style="overflow-x: auto;">
         <table>
           <thead><tr>
-            <th>ID</th><th>Tarefa</th>${isProject ? "<th>Responsável</th>" : ""}<th>Status</th><th>Prioridade</th><th>Prazo</th><th>Restante</th><th>Etiquetas</th>
+            <th>ID</th><th>Tarefa</th>${isProject ? "<th>Responsável</th>" : ""}<th>Status</th><th>Prioridade</th><th>Prazo</th><th>Restante</th><th>Etiquetas</th><th>Tarefa pai</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -447,7 +505,7 @@ function renderPersonOverview(person) {
           <div style="display: flex; flex-direction: column; gap: 7px;">
             ${Object.entries(person.priority).map(([label, count]) => `
               <div style="display: flex; align-items: center; gap: 7px; font-size: 11.5px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${priorityChartColor[label] || fallbackColor}; flex-shrink: 0;"></span>
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: ${priorityChartBg(label)}; flex-shrink: 0;"></span>
                 <span style="color: var(--muted);">${escapeHtml(label)}</span>
                 <span class="num" style="font-weight: 600; margin-left: auto;">${count}</span>
               </div>`).join("")}
@@ -483,7 +541,7 @@ function renderPersonOverview(person) {
   if (chart1) chart1.destroy();
   chart1 = mountChart("c1", Object.keys(person.priority).length > 0, () => ({
     type: "doughnut",
-    data: { labels: Object.keys(person.priority), datasets: [{ data: Object.values(person.priority), backgroundColor: Object.keys(person.priority).map(l => priorityChartColor[l] || fallbackColor), borderColor: "#ffffff", borderWidth: 2 }] },
+    data: { labels: Object.keys(person.priority), datasets: [{ data: Object.values(person.priority), backgroundColor: Object.keys(person.priority).map(priorityChartBg), borderColor: "#ffffff", borderWidth: 2 }] },
     options: { responsive: true, maintainAspectRatio: false, cutout: "68%", plugins: { legend: { display: false } } }
   }));
 
@@ -837,10 +895,8 @@ logoutBtn.onclick = async () => {
 const downloadPlanilhaBtn = document.getElementById("download-planilha-btn");
 const downloadPlanilhaError = document.getElementById("download-planilha-error");
 const downloadPlanilhaBtnDefaultHTML = downloadPlanilhaBtn.innerHTML;
-let downloadPlanilhaErrorTimeout = null;
 
 downloadPlanilhaBtn.onclick = async () => {
-  clearTimeout(downloadPlanilhaErrorTimeout);
   downloadPlanilhaError.style.display = "none";
   downloadPlanilhaBtn.disabled = true;
   downloadPlanilhaBtn.textContent = "Baixando…";
@@ -866,9 +922,6 @@ downloadPlanilhaBtn.onclick = async () => {
   } catch (err) {
     downloadPlanilhaError.textContent = err.message || "Não foi possível baixar a planilha.";
     downloadPlanilhaError.style.display = "block";
-    downloadPlanilhaErrorTimeout = setTimeout(() => {
-      downloadPlanilhaError.style.display = "none";
-    }, 3500);
   } finally {
     downloadPlanilhaBtn.disabled = false;
     downloadPlanilhaBtn.innerHTML = downloadPlanilhaBtnDefaultHTML;
@@ -936,7 +989,28 @@ function taskView(t) {
     done,
     late: !done && remaining !== null && remaining < 0,
     tags: (t.tarefa_etiqueta || []).map(link => link.etiquetas?.nome).filter(Boolean),
+    parentId: t.tarefa_pai_id || "",
+    isSubtask: t.tipo === "Subtask" || t.tarefa_pai_id != null,
   };
+}
+
+function orderedTaskRows(tasks) {
+  const byId = new Map(tasks.map(t => [t.id, t]));
+  const children = new Map();
+  tasks.forEach(t => {
+    if (t.parentId && byId.has(t.parentId)) {
+      if (!children.has(t.parentId)) children.set(t.parentId, []);
+      children.get(t.parentId).push(t);
+    }
+  });
+
+  const rows = [];
+  function append(task, level) {
+    rows.push({ task, level, hasChildren: children.has(task.id) });
+    (children.get(task.id) || []).forEach(child => append(child, level + 1));
+  }
+  tasks.filter(t => !t.parentId || !byId.has(t.parentId)).forEach(t => append(t, 0));
+  return rows;
 }
 
 function describePostgrestError(label, error) {
@@ -972,7 +1046,7 @@ async function loadDashboardData() {
   const [funcionariosRes, tarefasRes, horasRes, funcionarioAreaRes] = await Promise.all([
     supabaseClient.from("funcionarios").select("id, canonical_name, clickup_email, clockify_email, photo_url"),
     supabaseClient.from("tarefas").select(`
-      task_id, titulo, responsavel_id, area, prioridade, status, data_criacao, prazo, data_conclusao, tipo, criador, data_atualizacao,
+      task_id, titulo, responsavel_id, area, prioridade, status, data_criacao, prazo, data_conclusao, tipo, tarefa_pai_id, criador, data_atualizacao,
       tarefa_etiqueta ( etiquetas ( nome ) ),
       tarefa_responsavel ( funcionario_id )
     `).is("arquivada_em", null),
