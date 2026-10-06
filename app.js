@@ -945,6 +945,7 @@ const downloadDashboardError = document.getElementById("download-dashboard-error
 const downloadDashboardBtnDefaultHTML = downloadDashboardBtn.innerHTML;
 const excelKeyBlock = document.getElementById("excel-key-block");
 const excelKeyError = document.getElementById("excel-key-error");
+const excelGuide = document.getElementById("excel-guide");
 
 const excelDateFormat = new Intl.DateTimeFormat("pt-BR", {
   timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short",
@@ -970,6 +971,7 @@ function clearExcelPanel() {
   excelRenderSeq++;
   setExcelPanelOpen(false);
   excelKeyBlock.replaceChildren();
+  excelGuide.open = false;
   excelKeyError.textContent = "";
   excelKeyError.style.display = "none";
   downloadDashboardError.textContent = "";
@@ -1048,6 +1050,8 @@ async function renderExcelKeyBlock(revealedKey = null) {
   }
 
   const active = Array.isArray(data) && data.length > 0 ? data[0] : null;
+  // Guia aberto só para quem ainda não tem chave ativa; recalculado a cada render.
+  excelGuide.open = !active;
   if (active) {
     status.textContent = `Criada em ${excelDateFormat.format(new Date(active.created_at))}`;
     status.appendChild(document.createElement("br"));
