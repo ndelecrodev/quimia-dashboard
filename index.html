@@ -99,10 +99,60 @@
     <p style="font-size: 13px; font-weight: 600; margin: 0 0 6px;">Chave do Excel</p>
     <div id="excel-key-block" aria-live="polite"></div>
     <p id="excel-key-error" class="excel-error" style="display: none;"></p>
-    <p class="excel-help">
-      No Excel, na primeira vez que usar Dados &gt; Atualizar tudo, escolha "Básico",
-      digite qualquer nome de usuário e cole a chave como senha.
-    </p>
+
+    <div class="excel-divider"></div>
+
+    <!-- Aberto por padrão só para quem ainda não tem chave ativa:
+         renderExcelKeyBlock() ajusta o atributo open a cada render.
+         O endereço quimia-dashboard.pages.dev é literal de propósito: é o
+         que está fixo no Power Query do arquivo, qualquer que seja o domínio
+         em que o site foi aberto. -->
+    <details id="excel-guide" class="excel-guide">
+      <summary>Como usar o dashboard no Excel</summary>
+      <div class="excel-guide-body">
+        <p class="excel-guide-heading">Primeira vez</p>
+        <ol class="excel-guide-steps">
+          <li>Gere sua chave aqui no painel e copie. Ela só aparece uma vez.</li>
+          <li>Baixe o dashboard.</li>
+          <li>
+            <strong class="excel-guide-emph">Antes de abrir:</strong> clique com o botão direito no
+            arquivo, vá em <kbd>Propriedades</kbd> e, na aba <kbd>Geral</kbd>, marque
+            <kbd>Desbloquear</kbd> e clique em <kbd>OK</kbd>. Se a opção não aparecer, o arquivo já
+            está liberado.
+          </li>
+          <li>
+            Abra o arquivo. Se aparecer uma faixa amarela, clique em <kbd>Habilitar Edição</kbd> e
+            depois em <kbd>Habilitar Conteúdo</kbd>.
+          </li>
+          <li>
+            Vá em <kbd>Dados</kbd> &gt; <kbd>Atualizar Tudo</kbd>. Na janela de credenciais, escolha
+            <kbd>Básico</kbd> no menu da esquerda, digite qualquer nome de usuário e cole a chave no
+            campo de senha. Se o Excel perguntar o nível de privacidade, escolha
+            <kbd>Organizacional</kbd>.
+          </li>
+        </ol>
+
+        <p class="excel-guide-heading">Depois disso</p>
+        <p class="excel-guide-text">
+          É só abrir o arquivo e clicar em <kbd>Dados</kbd> &gt; <kbd>Atualizar Tudo</kbd>. A chave
+          fica salva no seu computador.
+        </p>
+
+        <p class="excel-guide-heading">Gerou uma chave nova ou a atual parou de funcionar?</p>
+        <p class="excel-guide-text">
+          No Excel, vá em <kbd>Dados</kbd> &gt; <kbd>Obter Dados</kbd> &gt;
+          <kbd>Configurações da Fonte de Dados</kbd>, selecione o endereço
+          <code>quimia-dashboard.pages.dev</code> e clique em <kbd>Limpar Permissões</kbd>. No
+          próximo <kbd>Atualizar Tudo</kbd>, o Excel pede a chave de novo.
+        </p>
+
+        <p class="excel-guide-heading">Apareceu erro de acesso negado?</p>
+        <p class="excel-guide-text">
+          Sua chave foi revogada ou substituída por uma nova. Gere outra aqui no painel e siga o
+          passo anterior.
+        </p>
+      </div>
+    </details>
   </section>
 
   <div class="card fade-in" style="padding: 16px 22px; margin-bottom: 18px;">

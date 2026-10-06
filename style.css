@@ -246,7 +246,6 @@ tbody tr:hover { background: var(--teal-wash); }
 .excel-divider { height: 1px; background: var(--border-soft); margin: 14px 0; }
 .excel-status { font-size: 12px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; }
 .excel-error { font-size: 11px; color: var(--late); margin: 8px 0 0; }
-.excel-help { font-size: 11.5px; color: var(--muted); margin: 12px 0 0; line-height: 1.5; }
 .excel-key-reveal { margin-top: 12px; }
 .excel-key-reveal .excel-row { flex-wrap: nowrap; }
 .excel-key-input {
@@ -254,6 +253,35 @@ tbody tr:hover { background: var(--teal-wash); }
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
 }
 .excel-key-warning { font-size: 11.5px; color: var(--late); margin: 6px 0 0; font-weight: 600; }
+
+/* Guia de uso: <details> nativo; o JS só decide se começa aberto. */
+.excel-guide > summary {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; list-style: none;
+}
+.excel-guide > summary::-webkit-details-marker { display: none; }
+.excel-guide > summary::before {
+  content: ""; flex: none; width: 6px; height: 6px;
+  border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg); transition: transform 150ms ease;
+}
+.excel-guide[open] > summary::before { transform: rotate(45deg); }
+.excel-guide > summary:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
+.excel-guide-body { font-size: 12px; color: var(--muted); line-height: 1.6; padding-top: 4px; }
+.excel-guide-heading { font-size: 12px; font-weight: 600; color: var(--ink); margin: 12px 0 4px; }
+.excel-guide-text { margin: 0; }
+.excel-guide-steps { margin: 0; padding-left: 20px; }
+.excel-guide-steps li + li { margin-top: 6px; }
+.excel-guide-steps li::marker { color: var(--teal); font-weight: 600; }
+.excel-guide-emph { color: var(--late); font-weight: 600; }
+.excel-guide kbd,
+.excel-guide code {
+  font-size: 11px; color: var(--teal-deep); background: var(--teal-wash);
+  border: 1px solid var(--border); border-radius: 5px; padding: 0 5px;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.excel-guide kbd { font-family: inherit; font-weight: 600; }
+.excel-guide code { font-family: "JetBrains Mono", ui-monospace, monospace; overflow-wrap: anywhere; }
 
 .export-row { display: flex; justify-content: flex-end; gap: 8px; padding: 8px 8px 0; margin-bottom: 14px; flex-wrap: wrap; }
 
