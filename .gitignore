@@ -19,3 +19,60 @@ venv/
 # no Postgres) e já está documentada no README. Nenhum segredo real (ex.:
 # service_role) existe neste repositório, então NÃO há .env a ignorar hoje.
 # Se um dia um .env com segredos for introduzido, adicione ".env" aqui.
+
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ---------- Segredos e configuração local ----------
+.env
+.env.*
+!.env.example
+
+# ---------- Caches de ferramentas ----------
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.pyright/
+.hypothesis/
+
+# ---------- Cobertura de testes ----------
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# ---------- Build e empacotamento ----------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---------- Banco local ----------
+*.sqlite3
+*.db
+pgdata/
+
+# ---------- Sistema operacional ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Logs e temporários ----------
+*.log
+*.tmp
+
+# ---------- Certificados do Aiven ----------
+certs/
+
+# ---------- Prompts de trabalho (locais) ----------
+prompt*.md
+
+# Claude
+
+.claude/
+CLAUDE.*
+CLAUDE.md
