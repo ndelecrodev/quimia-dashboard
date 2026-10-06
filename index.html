@@ -68,17 +68,42 @@
       </svg>
       <p class="display" style="font-size: 21px; font-weight: 600; margin: 0; letter-spacing: -0.01em; line-height: 1.1;">Painel da equipe</p>
     </div>
-    <div style="display: flex; align-items: center; gap: 14px;">
+    <div class="header-actions">
       <p id="last-updated" class="num" style="font-size: 11.5px; color: var(--muted); margin: 0;">Carregando…</p>
       <button id="download-planilha-btn" class="btn-outline">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>
         Baixar planilha completa
       </button>
+      <button id="excel-toggle-btn" class="btn-outline" aria-expanded="false" aria-controls="excel-panel">Excel</button>
       <button id="logout-btn" class="btn-outline">Sair</button>
     </div>
   </div>
 
   <p id="download-planilha-error" style="font-size: 11px; color: var(--late); margin: -10px 0 14px; display: none; text-align: right;"></p>
+
+  <!-- Área do Excel: download do dashboard (.xlsm) e chave pessoal usada
+       pelo Power Query para baixar a planilha de dados. -->
+  <section id="excel-panel" class="card excel-panel" aria-labelledby="excel-panel-title" hidden>
+    <p id="excel-panel-title" class="eyebrow" style="margin: 0 0 10px;">Excel</p>
+
+    <div class="excel-row">
+      <button id="download-dashboard-btn" class="btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 21h14"/></svg>
+        Baixar dashboard (Excel)
+      </button>
+    </div>
+    <p id="download-dashboard-error" class="excel-error" style="display: none;"></p>
+
+    <div class="excel-divider"></div>
+
+    <p style="font-size: 13px; font-weight: 600; margin: 0 0 6px;">Chave do Excel</p>
+    <div id="excel-key-block" aria-live="polite"></div>
+    <p id="excel-key-error" class="excel-error" style="display: none;"></p>
+    <p class="excel-help">
+      No Excel, na primeira vez que usar Dados &gt; Atualizar tudo, escolha "Básico",
+      digite qualquer nome de usuário e cole a chave como senha.
+    </p>
+  </section>
 
   <div class="card fade-in" style="padding: 16px 22px; margin-bottom: 18px;">
     <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">

@@ -123,6 +123,66 @@ build, porque não há build.
 Hospedado no Cloudflare Pages, conectado a este repositório no GitHub. Sem
 comando de build, diretório de saída é a raiz do repositório.
 
+## Downloads e integração com o Excel
+
+As rotas abaixo são Cloudflare Pages Functions em `functions/api/`. As duas
+buscam o arquivo no Backblaze B2 pelo servidor, então as credenciais do B2
+nunca chegam ao navegador. A lógica comum (checagem de sessão, validação da
+chave e download do B2) fica em `functions/_lib/server-helpers.js`. Esse
+arquivo não exporta nenhum `onRequest*`, por isso o Pages não cria rota para
+ele.
+
+### `GET /api/download-planilha`
+
+Devolve `QuimiaGestao.xlsx`, a planilha de dados que o dashboard em Excel lê
+via Power Query. Aceita dois esquemas no cabeçalho `Authorization`:
+
+- `Bearer <token>`: a sessão do Supabase. É o que o botão "Baixar planilha
+  completa" do site envia. O acesso é liberado quando a consulta a
+  `funcionarios` com esse token devolve ao menos uma linha (RLS via
+  `is_registered_employee()`).
+- `Basic <base64>`: a chave pessoal do Excel. O nome de usuário é ignorado e
+  a senha é validada pela RPC `validate_excel_token`. Só a resposta `true`
+  libera o download.
+
+Uma requisição sem `Authorization` recebe 401 com
+`WWW-Authenticate: Basic realm="Quimia", charset="UTF-8"`, o que faz o
+Excel pedir as credenciais. Qualquer outra falha (chave inválida, sessão
+inválida, cabeçalho malformado) recebe 401 ou 403 sem esse cabeçalho, para
+que o navegador nunca abra a janela nativa de login Basic para quem usa o
+site.
+
+### `GET /api/download-dashboard`
+
+Devolve o dashboard `.xlsm`. Só aceita a sessão do Supabase (`Bearer`); a
+chave pessoal é recusada aqui, porque apenas a planilha de dados precisa
+ser acessível pelo Excel. O botão "Baixar dashboard (Excel)", na área
+"Excel" do site, usa esta rota.
+
+### Chave do Excel
+
+Na área "Excel" do site, cada funcionário gera a própria chave (prefixo
+`qxl_`). Ela aparece uma única vez; gerar outra revoga a anterior na hora.
+No Excel, no primeiro "Atualizar tudo", escolha "Básico", digite qualquer
+nome de usuário e cole a chave como senha.
+
+O pipeline nunca apaga linhas de `funcionarios`. Para cortar o acesso de
+quem saiu da empresa, revogue a chave dessa pessoa no banco; sem isso, a
+chave continua baixando a planilha.
+
+### Variáveis de ambiente no Cloudflare Pages
+
+| Variável | Uso |
+| --- | --- |
+| `B2_KEY_ID` | ID da application key do B2 |
+| `B2_APPLICATION_KEY` | Application key do B2 (segredo) |
+| `B2_BUCKET_NAME` | Bucket onde ficam os arquivos |
+| `EXCEL_CLOUD_NAME` | Nome do objeto da planilha de dados (`.xlsx`) |
+| `DASHBOARD_CLOUD_NAME` | Nome do objeto do dashboard (`.xlsm`) |
+
+Se alguma estiver ausente, a rota correspondente responde 500 com
+"Configuração do servidor incompleta.".
+
 ## Segurança e a chave `anon`
 
 A `SUPABASE_ANON_KEY` presente em `app.js` é **pública por design** e pode
