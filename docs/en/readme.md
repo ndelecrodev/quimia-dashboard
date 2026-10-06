@@ -126,6 +126,64 @@ there's no build.
 Hosted on Cloudflare Pages, connected to this repository's GitHub. No
 build command, output directory is the repository root.
 
+## Downloads and Excel integration
+
+The routes below are Cloudflare Pages Functions in `functions/api/`. Both
+fetch the file from Backblaze B2 on the server, so B2 credentials never
+reach the browser. Shared logic (session check, key validation and the B2
+download) lives in `functions/_lib/server-helpers.js`. That file exports no
+`onRequest*` handler, so Pages does not create a route for it.
+
+### `GET /api/download-planilha`
+
+Returns `QuimiaGestao.xlsx`, the data workbook the Excel dashboard reads
+through Power Query. The `Authorization` header accepts two schemes:
+
+- `Bearer <token>`: the Supabase session. The site's "Baixar planilha
+  completa" button sends this. Access is granted when querying
+  `funcionarios` with that token returns at least one row (RLS via
+  `is_registered_employee()`).
+- `Basic <base64>`: the personal Excel key. The username is ignored and the
+  password is checked by the `validate_excel_token` RPC. Only a `true`
+  response allows the download.
+
+A request without `Authorization` gets 401 with
+`WWW-Authenticate: Basic realm="Quimia", charset="UTF-8"`, which makes
+Excel prompt for credentials. Any other failure (invalid key, invalid
+session, malformed header) gets 401 or 403 without that header, so the
+browser never opens its native Basic login dialog for site users.
+
+### `GET /api/download-dashboard`
+
+Returns the `.xlsm` dashboard. It accepts only the Supabase session
+(`Bearer`). Personal keys are rejected here because only the data workbook
+needs to be reachable from Excel. The "Baixar dashboard (Excel)" button in
+the site's "Excel" area uses this route.
+
+### Excel key
+
+In the site's "Excel" area, each employee generates their own key (prefix
+`qxl_`). It is shown only once, and generating a new one revokes the
+previous key immediately. In Excel, on the first "Refresh All", choose
+"Basic", type any username and paste the key as the password.
+
+The pipeline never deletes rows from `funcionarios`. To cut off someone who
+left the company, revoke that person's key in the database; until then the
+key keeps downloading the workbook.
+
+### Cloudflare Pages environment variables
+
+| Variable | Purpose |
+| --- | --- |
+| `B2_KEY_ID` | B2 application key ID |
+| `B2_APPLICATION_KEY` | B2 application key (secret) |
+| `B2_BUCKET_NAME` | Bucket holding the files |
+| `EXCEL_CLOUD_NAME` | Object name of the data workbook (`.xlsx`) |
+| `DASHBOARD_CLOUD_NAME` | Object name of the dashboard (`.xlsm`) |
+
+If any of them is missing, the matching route responds 500 with
+"Configuração do servidor incompleta.".
+
 ## Security and the `anon` key
 
 The `SUPABASE_ANON_KEY` in `app.js` is **public by design** and is meant to

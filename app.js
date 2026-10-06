@@ -931,12 +931,218 @@ downloadPlanilhaBtn.onclick = async () => {
   }
 };
 
+/* ─────────────────────────────────────────────────────────────────
+   Área do Excel — download do dashboard .xlsm (functions/api/
+   download-dashboard.js, só sessão Supabase) e a chave pessoal que o
+   Power Query usa como senha Basic em /api/download-planilha.
+   A chave em texto puro só existe como argumento de renderExcelKeyBlock
+   e no value do campo; nunca vai para storage, URL ou console.
+   ───────────────────────────────────────────────────────────────── */
+const excelToggleBtn = document.getElementById("excel-toggle-btn");
+const excelPanel = document.getElementById("excel-panel");
+const downloadDashboardBtn = document.getElementById("download-dashboard-btn");
+const downloadDashboardError = document.getElementById("download-dashboard-error");
+const downloadDashboardBtnDefaultHTML = downloadDashboardBtn.innerHTML;
+const excelKeyBlock = document.getElementById("excel-key-block");
+const excelKeyError = document.getElementById("excel-key-error");
+
+const excelDateFormat = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short",
+});
+
+// Nome do arquivo vindo do Content-Disposition, ou o fallback.
+function filenameFromDisposition(res, fallback) {
+  const header = res.headers.get("Content-Disposition") || "";
+  const match = header.match(/filename="?([^";]+)"?/i);
+  return match?.[1]?.trim() || fallback;
+}
+
+function setExcelPanelOpen(open) {
+  excelPanel.hidden = !open;
+  excelToggleBtn.setAttribute("aria-expanded", String(open));
+}
+
+// Incrementado a cada render e no logout: um render cuja RPC volte depois
+// disso é descartado, para nunca recolocar uma chave no DOM.
+let excelRenderSeq = 0;
+
+function clearExcelPanel() {
+  excelRenderSeq++;
+  setExcelPanelOpen(false);
+  excelKeyBlock.replaceChildren();
+  excelKeyError.textContent = "";
+  excelKeyError.style.display = "none";
+  downloadDashboardError.textContent = "";
+  downloadDashboardError.style.display = "none";
+}
+
+excelToggleBtn.onclick = () => {
+  const open = excelPanel.hidden;
+  setExcelPanelOpen(open);
+  // Re-renderizar ao abrir também descarta qualquer chave exibida antes.
+  if (open) renderExcelKeyBlock();
+};
+
+downloadDashboardBtn.onclick = async () => {
+  downloadDashboardError.style.display = "none";
+  downloadDashboardBtn.disabled = true;
+  downloadDashboardBtn.textContent = "Baixando…";
+
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) throw new Error("Sessão expirada. Faça login novamente.");
+
+    const res = await fetch("/api/download-dashboard", {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+
+    if (!res.ok) {
+      let message = "Não foi possível baixar o dashboard.";
+      try {
+        const body = await res.json();
+        if (body?.error) message = body.error;
+      } catch { /* corpo não era JSON — mantém a mensagem padrão */ }
+      throw new Error(message);
+    }
+
+    downloadBlob(await res.blob(), filenameFromDisposition(res, "QuimiaGestao_Dashboard.xlsm"));
+  } catch (err) {
+    downloadDashboardError.textContent = err.message || "Não foi possível baixar o dashboard.";
+    downloadDashboardError.style.display = "block";
+  } finally {
+    downloadDashboardBtn.disabled = false;
+    downloadDashboardBtn.innerHTML = downloadDashboardBtnDefaultHTML;
+  }
+};
+
+function showExcelKeyError(message) {
+  excelKeyError.textContent = message;
+  excelKeyError.style.display = "block";
+}
+
+function excelButton(label, onClick) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn-outline";
+  btn.textContent = label;
+  btn.onclick = onClick;
+  return btn;
+}
+
+// Reconstrói o bloco inteiro a cada chamada, o que descarta do DOM qualquer
+// chave mostrada antes. revealedKey só é passado logo após gerar a chave.
+async function renderExcelKeyBlock(revealedKey = null) {
+  const seq = ++excelRenderSeq;
+  excelKeyError.style.display = "none";
+  const status = document.createElement("p");
+  status.className = "excel-status";
+  status.textContent = "Carregando…";
+  excelKeyBlock.replaceChildren(status);
+
+  const { data, error } = await supabaseClient.rpc("excel_token_status");
+  if (seq !== excelRenderSeq) return;
+  if (error) {
+    status.textContent = "";
+    showExcelKeyError("Não foi possível carregar o status da chave.");
+    return;
+  }
+
+  const active = Array.isArray(data) && data.length > 0 ? data[0] : null;
+  if (active) {
+    status.textContent = `Criada em ${excelDateFormat.format(new Date(active.created_at))}`;
+    status.appendChild(document.createElement("br"));
+    status.appendChild(document.createTextNode(active.last_used_at
+      ? `Último uso: ${excelDateFormat.format(new Date(active.last_used_at))}`
+      : "Ainda não usada"));
+  } else {
+    status.textContent = "Nenhuma chave ativa";
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "excel-row";
+  actions.appendChild(excelButton(active ? "Gerar nova chave" : "Gerar chave", (e) => generateExcelKey(e.currentTarget, Boolean(active))));
+  if (active) actions.appendChild(excelButton("Revogar chave", (e) => revokeExcelKey(e.currentTarget)));
+  excelKeyBlock.appendChild(actions);
+
+  if (revealedKey) excelKeyBlock.appendChild(buildKeyReveal(revealedKey));
+}
+
+function buildKeyReveal(key) {
+  const wrap = document.createElement("div");
+  wrap.className = "excel-key-reveal";
+
+  const row = document.createElement("div");
+  row.className = "excel-row";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.readOnly = true;
+  input.className = "auth-input excel-key-input";
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("spellcheck", "false");
+  input.setAttribute("aria-label", "Chave do Excel");
+  input.value = key;
+  input.onfocus = () => input.select();
+
+  const copyBtn = excelButton("Copiar", async () => {
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch {
+      input.select();
+      document.execCommand("copy");
+    }
+    copyBtn.textContent = "Copiada";
+  });
+
+  row.append(input, copyBtn);
+
+  const warning = document.createElement("p");
+  warning.className = "excel-key-warning";
+  warning.textContent = "Copie agora. Esta chave não será mostrada de novo.";
+
+  wrap.append(row, warning);
+  return wrap;
+}
+
+async function generateExcelKey(btn, hasActiveKey) {
+  if (hasActiveKey && !confirm("Gerar uma nova chave revoga a atual. Ela para de funcionar imediatamente em todos os computadores que a usam. Continuar?")) return;
+  btn.disabled = true;
+  btn.textContent = "Gerando…";
+  const seq = excelRenderSeq;
+  const { data, error } = await supabaseClient.rpc("create_excel_token");
+  if (seq !== excelRenderSeq) return; // logout ou re-render no meio: a chave é descartada
+  if (error || typeof data !== "string" || !data) {
+    btn.disabled = false;
+    btn.textContent = hasActiveKey ? "Gerar nova chave" : "Gerar chave";
+    showExcelKeyError("Não foi possível gerar a chave.");
+    return;
+  }
+  await renderExcelKeyBlock(data);
+}
+
+async function revokeExcelKey(btn) {
+  if (!confirm("Revogar a chave? O Excel deixa de atualizar em todos os computadores que a usam até que uma nova chave seja gerada.")) return;
+  btn.disabled = true;
+  btn.textContent = "Revogando…";
+  const seq = excelRenderSeq;
+  const { error } = await supabaseClient.rpc("revoke_excel_token");
+  if (seq !== excelRenderSeq) return;
+  if (error) {
+    btn.disabled = false;
+    btn.textContent = "Revogar chave";
+    showExcelKeyError("Não foi possível revogar a chave.");
+    return;
+  }
+  await renderExcelKeyBlock();
+}
+
 supabaseClient.auth.onAuthStateChange((_event, session) => {
   if (session) {
     authScreen.style.display = "none";
     appScreen.style.display = "block";
     loadDashboardData();
   } else {
+    clearExcelPanel();
     appScreen.style.display = "none";
     authScreen.style.display = "flex";
   }
